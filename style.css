@@ -29,7 +29,7 @@ body {
   align-items: center;
   overflow-x: hidden;
   position: relative;
-  padding: 2rem 1rem;
+  padding: 3rem 1rem;
 }
 
 @keyframes gradientBG {
@@ -38,7 +38,7 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* Elementos Decorativos Fundo (Tamanhos Corrigidos e Fixos) */
+/* Elementos Decorativos Fundo */
 .deco-bg {
   position: absolute;
   pointer-events: none;
@@ -53,10 +53,23 @@ body {
   display: block;
 }
 
-.deco-1 { top: 5%; left: 5%; width: 85px; animation: float 6s ease-in-out infinite; }
-.deco-2 { top: 8%; right: 5%; width: 95px; animation: float 8s ease-in-out infinite reverse; }
-.deco-3 { bottom: 5%; left: 6%; width: 75px; animation: float 7s ease-in-out infinite 1s; }
-.deco-4 { bottom: 8%; right: 6%; width: 90px; animation: float 9s ease-in-out infinite 0.5s; }
+/* Topo: Lado esquerdo (no.png) e Lado direito (laco.png) */
+.deco-no-top { top: 4%; left: 3%; width: 110px; animation: float 7s ease-in-out infinite; }
+.deco-laco-top { top: 4%; right: 3%; width: 140px; animation: float 8s ease-in-out infinite reverse; }
+
+/* Estrelas espalhadas (pelo menos 6) */
+.deco-star { opacity: 0.9; }
+.star-1 { top: 18%; left: 12%; width: 28px; animation: float 5s ease-in-out infinite; }
+.star-2 { top: 12%; right: 22%; width: 22px; animation: float 6s ease-in-out infinite 0.5s; }
+.star-3 { top: 48%; left: 4%; width: 32px; animation: float 7s ease-in-out infinite 1s; }
+.star-4 { top: 52%; right: 5%; width: 26px; animation: float 5.5s ease-in-out infinite 1.5s; }
+.star-5 { bottom: 18%; left: 15%; width: 24px; animation: float 6.5s ease-in-out infinite 0.8s; }
+.star-6 { bottom: 12%; right: 14%; width: 30px; animation: float 8s ease-in-out infinite 0.2s; }
+
+/* Inferiores próximos ao último botão */
+.deco-bottom-left { bottom: 2%; left: 4%; width: 110px; animation: float 7s ease-in-out infinite; }
+.deco-bottom-center { bottom: 1%; left: 48%; transform: translateX(-50%); width: 75px; animation: float 6s ease-in-out infinite 0.4s; }
+.deco-bottom-right { bottom: 2%; right: 4%; width: 110px; animation: float 8s ease-in-out infinite reverse; }
 
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -87,27 +100,12 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .conf-logo {
-  max-width: 90px;
+  max-width: 130px; /* Vetor confLogo maior conforme solicitado */
   height: auto;
-}
-
-.shine-logo {
-  max-width: 130px;
-  height: auto;
-}
-
-.brand-title {
-  font-family: 'Playfair Display', serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--lilas-profundo), var(--rosa-bubblegum));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  letter-spacing: 2px;
 }
 
 .section-title {
@@ -120,30 +118,32 @@ body {
 }
 
 .date-badge {
-  margin-top: 1.25rem;
+  margin-top: 1.5rem;
   background: linear-gradient(135deg, rgba(232, 192, 252, 0.6), rgba(168, 222, 250, 0.6));
   border: 1px solid var(--branco-perolado);
   border-radius: 999px;
-  padding: 0.75rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   display: inline-block;
   box-shadow: 0 4px 15px rgba(128, 97, 217, 0.1);
+  position: relative;
 }
 
-.save-date-tag {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--lilas-profundo);
+/* Selo "Save Date" em estrela de 13 pontas / burst com gradiente e texto branco */
+.save-date-badge {
+  position: absolute;
+  top: -14px;
+  left: -12px;
+  background: linear-gradient(135deg, var(--rosa-bubblegum), var(--lilas-profundo));
+  color: var(--branco-perolado);
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin-bottom: 2px;
-}
-
-.mini-star {
-  width: 14px;
-  height: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(128, 97, 217, 0.3);
+  border: 1px solid var(--branco-perolado);
+  clip-path: polygon(50% 0%, 65% 15%, 82% 8%, 88% 25%, 100% 35%, 92% 52%, 98% 70%, 82% 78%, 85% 95%, 68% 90%, 52% 100%, 38% 90%, 20% 95%, 22% 78%, 5% 70%, 12% 52%, 0% 35%, 15% 25%, 18% 8%, 35% 15%);
+  transform: rotate(-10deg);
 }
 
 .date-badge p {
@@ -290,26 +290,16 @@ body {
   box-shadow: 0 10px 25px rgba(128, 97, 217, 0.2);
 }
 
-.btn-primary {
+/* Ambos os botões com a mesma cor gradiente perolado */
+.btn-primary, .btn-secondary {
   background: linear-gradient(135deg, var(--lavanda), var(--rosa-bubblegum), var(--azul-bebe));
   color: var(--lilas-profundo);
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-secondary:hover {
   filter: brightness(1.05);
   transform: translateY(-2px);
   box-shadow: 0 14px 30px rgba(128, 97, 217, 0.3);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--lilas-profundo);
-  border-color: var(--lilas-suave);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.9);
-  transform: translateY(-2px);
 }
 
 .existing-ticket-link {
@@ -378,12 +368,4 @@ body {
     padding: 1.75rem 1.25rem;
     border-radius: 24px;
   }
-  .brand-title {
-    font-size: 2rem;
-  }
-  /* Reduz levemente os vetores em telas pequenas para evitar sobreposição */
-  .deco-1 { width: 60px; }
-  .deco-2 { width: 65px; }
-  .deco-3 { width: 55px; }
-  .deco-4 { width: 60px; }
 }
