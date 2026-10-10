@@ -80,27 +80,67 @@ document.addEventListener('DOMContentLoaded', () => {
             }])
             .select();
 
-        if (error) {
+        if (error || !data || data.length === 0) {
             console.error('Erro ao salvar no Supabase:', error);
             alert('Erro ao processar inscrição. Tente novamente.');
             return;
         }
 
+        // Recupera o ID do pedido gerado pelo Supabase para vincular ao order_nsu
+        const insertedOrder = data[0];
+        const orderId = insertedOrder.id || ingressoCode;
+
         // Salvar dados temporários no localStorage para recuperação imediata após redirect
         localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa }));
 
-        // Links do InfinitePay
-        const baseUrl = 'https://checkout.infinitepay.io/nayannealmeidq';
-        const redirectUrl = 'https://lagoinhacearamirim.github.io/shine/meu-ingresso.html';
-        
-        let checkoutUrl = '';
-        if (camisa === 'sim') {
-            checkoutUrl = `${baseUrl}?items=[{"name":"Inscrição Conferência Shine 2026 + Camisa","price":8500,"quantity":1}]&redirect_url=${encodeURIComponent(redirectUrl)}`;
-        } else {
-            checkoutUrl = `${baseUrl}?items=[{"name":"Inscrição Conferência Shine 2026","price":4000,"quantity":1}]&redirect_url=${encodeURIComponent(redirectUrl)}`;
-        }
+        // Configurações para a API do Checkout da InfinitePay
+        const handle = 'nayannealmeidq';
+        const redirectUrl = 'https://lagoinhacearamirim.github.io/shine/meu-ingresso/meu-ingresso.html';
+        const webhookUrl = 'https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook';
 
-        window.location.href = checkoutUrl;
+        const itemDescription = camisa === 'sim' 
+            ? 'Inscrição Conferência Shine 2026 + Camisa' 
+            : 'Inscrição Conferência Shine 2026';
+        const itemPrice = camisa === 'sim' ? 8500 : 4000;
+
+        const payload = {
+            handle: handle,
+            redirect_url: redirectUrl,
+            webhook_url: webhookUrl,
+            order_nsu: String(orderId),
+            items: [
+                {
+                    quantity: 1,
+                    price: itemPrice,
+                    description: itemDescription
+                }
+            ]
+        };
+
+        try {
+            const response = await fetch('https://api.checkout.infinitepay.io/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Erro na API InfinitePay: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (result && result.url) {
+                window.location.href = result.url;
+            } else {
+                throw new Error('URL de checkout não retornada pela API.');
+            }
+        } catch (err) {
+            console.error('Erro ao gerar checkout:', err);
+            alert('Erro ao redirecionar para o pagamento. Tente novamente.');
+        }
     });
 
     // Botão PAGAR EM ESPÉCIE
