@@ -11,23 +11,27 @@
 </head>
 <body>
     <!-- Elementos Decorativos Holográficos de Fundo -->
-    <div class="deco-bg deco-1"><img src="blackhole.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-2"><img src="laco.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-3"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-4"><img src="lacoTexto.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-no-top"><img src="no.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-laco-top"><img src="laco.png" alt="" onerror="this.style.display='none'"></div>
+
+    <!-- Estrelas Espalhadas (Pelo menos 6 instâncias) -->
+    <div class="deco-bg deco-star star-1"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-star star-2"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-star star-3"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-star star-4"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-star star-5"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-star star-6"><img src="estela.png" alt="" onerror="this.style.display='none'"></div>
 
     <main class="container">
         <!-- Cabeçalho / Logos -->
         <header class="header">
             <div class="logo-container">
                 <img src="confLogo.png" alt="Conf Logo" class="conf-logo" onerror="this.style.display='none'">
-                <img src="shineLogo.png" alt="Shine Logo" class="shine-logo" onerror="this.style.display='none'">
-                <h1 class="brand-title">shine</h1>
             </div>
             <h2 class="section-title">INSCRIÇÕES ABERTAS</h2>
             
             <div class="date-badge">
-                <span class="save-date-tag"><img src="estela.png" alt="" class="mini-star"> Save date</span>
+                <div class="save-date-badge">Save date</div>
                 <p>05/12; Check-in às 14h</p>
             </div>
         </header>
@@ -77,6 +81,11 @@
             </div>
         </form>
     </main>
+
+    <!-- Elementos Inferiores Próximos ao Último Botão -->
+    <div class="deco-bg deco-bottom-left"><img src="blackhole.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-bottom-center"><img src="no.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-bottom-right"><img src="shineLogo.png" alt="" onerror="this.style.display='none'"></div>
 
     <!-- Modal para visualizar a camisa -->
     <div id="shirt-modal" class="modal">
