@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Ingresso - Shine 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .ticket-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            text-align: left;
+            border: 1.5px solid var(--lilas-suave);
+        }
+        .ticket-info {
+            margin: 0.5rem 0;
+            font-size: 0.95rem;
+        }
+        .ticket-code {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--lilas-profundo);
+            text-align: center;
+            margin: 1rem 0;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <main class="container" style="text-align: center;">
+        <header class="header">
+            <h2 class="section-title">MEU INGRESSO</h2>
+            <p>Conferência Shine 2026</p>
+        </header>
+
+        <div id="ticket-result">
+            <p>Buscando seu ingresso...</p>
+        </div>
+
+        <div class="actions" style="margin-top: 1.5rem;">
+            <button id="btn-download" class="btn btn-primary" style="display:none;">BAIXAR INGRESSO EM PDF</button>
+            <a href="index.html" class="btn btn-secondary" style="text-decoration:none; display:block; padding: 1rem;">Voltar ao Início</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const SUPABASE_URL = 'SUA_SUPABASE_URL_AQUI';
+        const SUPABASE_ANON_KEY = 'SUA_SUPABASE_ANON_KEY_AQUI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const ticketResult = document.getElementById('ticket-result');
+            const btnDownload = document.getElementById('btn-download');
+
+            // Verificar parâmetros da URL retornados pelo InfinitePay ou localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const tempData = JSON.parse(localStorage.getItem('shine_temp_ingresso') || '{}');
+
+            let ingressoCode = tempData.ingresso;
+
+            if (!ingressoCode) {
+                ticketResult.innerHTML = `<p>Nenhum ingresso encontrado recente neste navegador. Use o formulário principal para se inscrever.</p>`;
+                return;
+            }
+
+            // Consultar status atual no Supabase
+            const { data, error } = await supabase
+                .from('ingressos')
+                .select('*')
+                .eq('ingresso', ingressoCode)
+                .single();
+
+            if (error || !data) {
+                ticketResult.innerHTML = `<p>Ingresso ${ingressoCode} em processamento ou aguardando confirmação de pagamento.</p>`;
+                return;
+            }
+
+            const statusText = data.status === 'pago' ? '<span style="color: green; font-weight: bold;">PAGO ✅</span>' : '<span style="color: orange; font-weight: bold;">PENDENTE ⏳</span>';
+
+            ticketResult.innerHTML = `
+                <div class="ticket-card">
+                    <p class="ticket-info"><strong>Nome:</strong> ${data.name}</p>
+                    <p class="ticket-info"><strong>Telefone:</strong> ${data.tell}</p>
+                    <p class="ticket-info"><strong>Camisa:</strong> ${data.camisa.toUpperCase()}</p>
+                    <p class="ticket-info"><strong>Status:</strong> ${statusText}</p>
+                    <div class="ticket-code">${data.ingresso}</div>
+                </div>
+            `;
+
+            if (data.status === 'pago') {
+                btnDownload.style.display = 'block';
+                btnDownload.addEventListener('click', () => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(22);
+                    doc.text("CONFERENCIA SHINE 2026", 105, 30, { align: "center" });
+                    doc.setFontSize(14);
+                    doc.text("COMPROVANTE DE INSCRICAO", 105, 40, { align: "center" });
+                    
+                    doc.setFont("Helvetica", "normal");
+                    doc.setFontSize(12);
+                    doc.text(`Nome: ${data.name}`, 20, 70);
+                    doc.text(`Telefone: ${data.tell}`, 20, 80);
+                    doc.text(`Camisa: ${data.camisa.toUpperCase()}`, 20, 90);
+                    doc.text(`Status: PAGO`, 20, 100);
+                    
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(16);
+                    doc.text(`Codigo do Ingresso: ${data.ingresso}`, 105, 130, { align: "center" });
+
+                    doc.save(`Ingresso-Shine2026-${data.ingresso}.pdf`);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
