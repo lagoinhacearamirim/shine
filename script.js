@@ -1,7 +1,7 @@
 // Configuração do Supabase (Substitua pelas suas chaves reais)
 const SUPABASE_URL = 'SUA_SUPABASE_URL_AQUI';
 const SUPABASE_ANON_KEY = 'SUA_SUPABASE_ANON_KEY_AQUI';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
     const cardSim = document.getElementById('card-sim');
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ingressoCode = generateIngressoCode();
 
         // Salvar pendente no Supabase
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('ingressos')
             .insert([{
                 name: name,
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const ingressoCode = generateIngressoCode();
         const valor = camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00';
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('ingressos')
             .insert([{
                 name: name,
