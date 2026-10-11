@@ -159,23 +159,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Botão PAGAR EM ESPÉCIE
-especieMsg.innerHTML = `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
-    <strong>Valor a pagar:</strong> ${valor}<br>
-    <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
-    Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
+   // Botão PAGAR EM ESPÉCIE
+    document.getElementById('btn-especie').addEventListener('click', async () => {
+        const name = document.getElementById('name').value.trim();
+        const tell = document.getElementById('tell').value.trim();
+        const camisa = document.querySelector('input[name="camisa"]:checked').value;
 
-localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, status: 'pendente_especie' }));
+        if (!name || !tell) {
+            alert('Por favor, preencha seu nome e telefone.');
+            return;
+        }
 
-if (especieModal && typeof especieModal.showModal === 'function') {
-    especieModal.showModal();
-} else {
-    alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
-    window.location.href = 'meu-ingresso.html';
-}
+        const ingressoCode = generateIngressoCode();
+        const valor = camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00';
+        const valorTotal = camisa === 'sim' ? 8500 : 4000;
 
-especieBtnClose.onclick = () => {
-    especieModal.close();
-    window.location.href = 'meu-ingresso.html';
-};
+        const { error } = await supabaseClient
+            .from('ingressos')
+            .insert([{
+                name: name,
+                tell: parseFloat(tell.replace(/\D/g, '')),
+                camisa: camisa,
+                status: 'pendente_especie',
+                ingresso: ingressoCode,
+                total: valorTotal
+            }]);
+
+        if (error) {
+            console.error('Erro:', error);
+            alert('Erro ao registrar inscrição.');
+            return;
+        }
+        especieMsg.innerHTML = `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
+            <strong>Valor a pagar:</strong> ${valor}<br>
+            <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
+            Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
+
+        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, status: 'pendente_especie' }));
+
+        if (especieModal && typeof especieModal.showModal === 'function') {
+            especieModal.showModal();
+        } else {
+            alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
+            window.location.href = 'meu-ingresso.html';
+        }
+
+        especieBtnClose.onclick = () => {
+            especieModal.close();
+            window.location.href = 'meu-ingresso.html';
+        };
+    });
 });
