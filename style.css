@@ -418,3 +418,61 @@ body {
   .deco-bottom-center { bottom: 0.2%; width: 55px; }
   .deco-bottom-right { bottom: 0.5%; right: 1%; width: 80px; }
 }
+
+dialog#especie-success-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    border: none;
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2);
+    background: #ffffff;
+    text-align: center;
+}
+
+/* Fundo escurecido elegante ao abrir a dialog */
+dialog#especie-success-modal::backdrop {
+    background: rgba(43, 43, 43, 0.5);
+    backdrop-filter: blur(2px);
+}
+/* Animação flutuante para o laço */
+@keyframes floatLaco {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+.loader-laco {
+    width: 140px;
+    height: auto;
+    animation: floatLaco 2s ease-in-out infinite;
+    margin-bottom: 20px;
+}
+
+/* Container horizontal das estrelas */
+.loader-stars {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-stars img {
+    width: 22px;
+    height: auto;
+    animation: jumpStar 1s ease-in-out infinite;
+}
+
+/* Atraso em cascata para as estrelas pularem em sequência */
+.loader-stars img:nth-child(1) { animation-delay: 0s; }
+.loader-stars img:nth-child(2) { animation-delay: 0.2s; }
+.loader-stars img:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes jumpStar {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
