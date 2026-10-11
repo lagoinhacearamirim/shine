@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Salvar dados temporários no localStorage para recuperação imediata após redirect
         localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa }));
 
-        // Configurações para a API do Checkout da InfinitePay
+        // Configurações para o Checkout da InfinitePay via URL direta
         const handle = 'nayannealmeidq';
         const redirectUrl = 'https://lagoinhacearamirim.github.io/shine/meu-ingresso/meu-ingresso.html';
         const webhookUrl = 'https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook';
@@ -103,44 +103,15 @@ document.addEventListener('DOMContentLoaded', () => {
             : 'Inscrição Conferência Shine 2026';
         const itemPrice = camisa === 'sim' ? 8500 : 4000;
 
-        const payload = {
-            handle: handle,
-            redirect_url: redirectUrl,
-            webhook_url: webhookUrl,
-            order_nsu: String(orderId),
-            items: [
-                {
-                    quantity: 1,
-                    price: itemPrice,
-                    description: itemDescription
-                }
-            ]
-        };
+        const itemsJSON = JSON.stringify([{
+            name: itemDescription,
+            price: itemPrice,
+            quantity: 1
+        }]);
 
-        try {
-            const response = await fetch('https://api.checkout.infinitepay.io/links', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
+        const checkoutUrl = `https://checkout.infinitepay.io/${handle}?items=${encodeURIComponent(itemsJSON)}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}&order_nsu=${encodeURIComponent(String(orderId))}`;
 
-            if (!response.ok) {
-                throw new Error(`Erro na API InfinitePay: ${response.statusText}`);
-            }
-
-            const result = await response.json();
-
-            if (result && result.url) {
-                window.location.href = result.url;
-            } else {
-                throw new Error('URL de checkout não retornada pela API.');
-            }
-        } catch (err) {
-            console.error('Erro ao gerar checkout:', err);
-            alert('Erro ao redirecionar para o pagamento. Tente novamente.');
-        }
+        window.location.href = checkoutUrl;
     });
 
     // Botão PAGAR EM ESPÉCIE
