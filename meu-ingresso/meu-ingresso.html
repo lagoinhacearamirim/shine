@@ -7,44 +7,151 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
     <style>
+        :root {
+            --lilas-profundo: #4a2e5d;
+            --lilas-suave: #d4b5f0;
+            --fundo-claro: #f9f6fc;
+            --texto-principal: #2b2b2b;
+            --branco: #ffffff;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--fundo-claro);
+            color: var(--texto-principal);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--branco);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(74, 46, 93, 0.08);
+            padding: 2rem;
+            box-sizing: border-box;
+            text-align: center;
+            margin: 1rem;
+        }
+
+        .header .section-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--lilas-profundo);
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.95rem;
+            margin-top: 0;
+        }
+
         .ticket-card {
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 20px;
+            background: rgba(212, 181, 240, 0.12);
+            border-radius: 16px;
             padding: 1.5rem;
-            margin-top: 1rem;
+            margin-top: 1.5rem;
             text-align: left;
             border: 1.5px solid var(--lilas-suave);
         }
+
         .ticket-info {
-            margin: 0.5rem 0;
+            margin: 0.75rem 0;
             font-size: 0.95rem;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
         }
+
+        .ticket-info strong {
+            color: var(--lilas-profundo);
+        }
+
         .ticket-code {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 700;
             color: var(--lilas-profundo);
             text-align: center;
-            margin: 1rem 0;
+            background: var(--branco);
+            padding: 0.75rem;
+            border-radius: 12px;
+            margin: 1.25rem 0 0.5rem 0;
             letter-spacing: 2px;
+            border: 1px dashed var(--lilas-suave);
         }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--lilas-profundo);
+            color: var(--branco);
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--lilas-profundo);
+            border: 1.5px solid var(--lilas-profundo);
+        }
+
+        .btn-secondary:hover {
+            background-color: rgba(74, 46, 93, 0.05);
+        }
+
+        .actions {
+            margin-top: 1.75rem;
+        }
+
+        .status-badge {
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        .status-pago { color: #0d8a4f; background: #e2f8ed; }
+        .status-pendente { color: #b7791f; background: #fef3c7; }
+        .status-especie { color: #2b6cb0; background: #ebf8ff; }
     </style>
 </head>
 <body>
-    <main class="container" style="text-align: center;">
+    <main class="container">
         <header class="header">
             <h2 class="section-title">MEU INGRESSO</h2>
             <p>Conferência Shine 2026</p>
         </header>
 
         <div id="ticket-result">
-            <p>Buscando seu ingresso...</p>
+            <p style="color: #666; margin: 2rem 0;">Buscando seu ingresso...</p>
         </div>
 
-        <div class="actions" style="margin-top: 1.5rem;">
+        <div class="actions">
             <button id="btn-download" class="btn btn-primary" style="display:none;">BAIXAR INGRESSO EM PDF</button>
-            <a href="index.html" class="btn btn-secondary" style="text-decoration:none; display:block; padding: 1rem;">Voltar ao Início</a>
+            <a href="index.html" class="btn btn-secondary">Voltar ao Início</a>
         </div>
     </main>
 
@@ -59,18 +166,16 @@
             const ticketResult = document.getElementById('ticket-result');
             const btnDownload = document.getElementById('btn-download');
 
-            // Verificar parâmetros da URL retornados pelo InfinitePay ou localStorage
-            const urlParams = new URLSearchParams(window.location.search);
+            // Recupera dados salvos localmente no navegador após o cadastro
             const tempData = JSON.parse(localStorage.getItem('shine_temp_ingresso') || '{}');
-
             let ingressoCode = tempData.ingresso;
 
             if (!ingressoCode) {
-                ticketResult.innerHTML = `<p>Nenhum ingresso encontrado recente neste navegador. Use o formulário principal para se inscrever.</p>`;
+                ticketResult.innerHTML = `<p style="color: #e53e3e; margin: 1.5rem 0;">Nenhum ingresso recente encontrado neste navegador. Realize a inscrição na página inicial.</p>`;
                 return;
             }
 
-            // Consultar status atual no Supabase
+            // Consulta o status atualizado no Supabase utilizando o código do ingresso
             const { data, error } = await supabase
                 .from('ingressos')
                 .select('*')
@@ -78,44 +183,103 @@
                 .single();
 
             if (error || !data) {
-                ticketResult.innerHTML = `<p>Ingresso ${ingressoCode} em processamento ou aguardando confirmação de pagamento.</p>`;
+                ticketResult.innerHTML = `<p style="color: #e53e3e; margin: 1.5rem 0;">Ingresso ${ingressoCode} não localizado no banco de dados.</p>`;
                 return;
             }
 
-            const statusText = data.status === 'pago' ? '<span style="color: green; font-weight: bold;">PAGO ✅</span>' : '<span style="color: orange; font-weight: bold;">PENDENTE ⏳</span>';
+            // Formatações visuais
+            let statusBadge = '';
+            if (data.status === 'pago') {
+                statusBadge = '<span class="status-badge status-pago">PAGO ✅</span>';
+            } else if (data.status === 'pendente_especie') {
+                statusBadge = '<span class="status-badge status-especie">AGUARDANDO ESPÉCIE 💵</span>';
+            } else {
+                statusBadge = '<span class="status-badge status-pendente">PENDENTE ⏳</span>';
+            }
 
+            const valorFormatado = data.total ? `R$ ${(data.total / 100).toFixed(2).replace('.', ',')}` : (data.camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00');
+            const camisaTexto = data.camisa === 'sim' ? 'Sim (+ Camisa)' : 'Não';
+
+            // Exibe os dados no card da página
             ticketResult.innerHTML = `
                 <div class="ticket-card">
-                    <p class="ticket-info"><strong>Nome:</strong> ${data.name}</p>
-                    <p class="ticket-info"><strong>Telefone:</strong> ${data.tell}</p>
-                    <p class="ticket-info"><strong>Camisa:</strong> ${data.camisa.toUpperCase()}</p>
-                    <p class="ticket-info"><strong>Status:</strong> ${statusText}</p>
+                    <div class="ticket-info"><span>Nome:</span> <strong>${data.name}</strong></div>
+                    <div class="ticket-info"><span>Telefone:</span> <strong>${data.tell}</strong></div>
+                    <div class="ticket-info"><span>Camisa:</span> <strong>${camisaTexto}</strong></div>
+                    <div class="ticket-info"><span>Valor:</span> <strong>${valorFormatado}</strong></div>
+                    <div class="ticket-info"><span>Status:</span> <strong>${statusBadge}</strong></div>
                     <div class="ticket-code">${data.ingresso}</div>
                 </div>
             `;
 
+            // Libera o botão de download em PDF se o pagamento estiver aprovado
             if (data.status === 'pago') {
                 btnDownload.style.display = 'block';
                 btnDownload.addEventListener('click', () => {
                     const { jsPDF } = window.jspdf;
                     const doc = new jsPDF();
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(22);
-                    doc.text("CONFERENCIA SHINE 2026", 105, 30, { align: "center" });
-                    doc.setFontSize(14);
-                    doc.text("COMPROVANTE DE INSCRICAO", 105, 40, { align: "center" });
-                    
-                    doc.setFont("Helvetica", "normal");
-                    doc.setFontSize(12);
-                    doc.text(`Nome: ${data.name}`, 20, 70);
-                    doc.text(`Telefone: ${data.tell}`, 20, 80);
-                    doc.text(`Camisa: ${data.camisa.toUpperCase()}`, 20, 90);
-                    doc.text(`Status: PAGO`, 20, 100);
-                    
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(16);
-                    doc.text(`Codigo do Ingresso: ${data.ingresso}`, 105, 130, { align: "center" });
 
+                    // Cores e Estilo do PDF
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(20);
+                    doc.setTextColor(74, 46, 93); // Lilás Profundo
+                    doc.text("CONFERÊNCIA SHINE 2026", 105, 20, { align: "center" });
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text("COMPROVANTE OFICIAL DE INSCRIÇÃO", 105, 28, { align: "center" });
+
+                    // Linha divisoria
+                    doc.setDrawColor(212, 181, 240);
+                    doc.setLineWidth(0.5);
+                    doc.line(20, 35, 190, 35);
+
+                    // Informações do Participante
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(14);
+                    doc.setTextColor(40, 40, 40);
+                    doc.text("Dados do Participante", 20, 48);
+
+                    doc.setFont("Helvetica", "normal");
+                    doc.setFontSize(11);
+                    doc.text(`Nome Completo: ${data.name}`, 20, 58);
+                    doc.text(`Telefone: ${data.tell}`, 20, 66);
+                    doc.text(`Incluso Camisa: ${camisaTexto}`, 20, 74);
+                    doc.text(`Valor Pago: ${valorFormatado}`, 20, 82);
+                    doc.text(`Status do Pagamento: APROVADO (PAGO)`, 20, 90);
+
+                    // Detalhes do Evento
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(14);
+                    doc.text("Informações do Evento", 20, 106);
+
+                    doc.setFont("Helvetica", "normal");
+                    doc.setFontSize(11);
+                    doc.text("Local: Lagoinha Ceará-Mirim / RN", 20, 116);
+                    doc.text("Data: 2026 (Consulte a programação oficial)", 20, 124);
+                    doc.text("Horário: Conforme cronograma oficial da igreja", 20, 132);
+
+                    // Caixa Destacada com o Número do Ingresso
+                    doc.setFillColor(249, 246, 252);
+                    doc.setDrawColor(74, 46, 93);
+                    doc.roundedRect(20, 145, 170, 32, 3, 3, 'FD');
+
+                    doc.setFont("Helvetica", "bold");
+                    doc.setFontSize(10);
+                    doc.setTextColor(74, 46, 93);
+                    doc.text("CÓDIGO ÚNICO DO INGRESSO", 105, 153, { align: "center" });
+
+                    doc.setFontSize(16);
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`${data.ingresso}`, 105, 167, { align: "center" });
+
+                    // Rodapé do PDF
+                    doc.setFont("Helvetica", "italic");
+                    doc.setFontSize(9);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text("Apresente este documento (digital ou impresso) na entrada do evento.", 105, 192, { align: "center" });
+
+                    // Salva o arquivo PDF
                     doc.save(`Ingresso-Shine2026-${data.ingresso}.pdf`);
                 });
             }
