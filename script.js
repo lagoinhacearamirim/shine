@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             order_nsu: orderId,
             webhook_url: "https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook",
-            redirect_url: "https://lagoinhacearamirim.github.io/shine/meu-ingresso/meu-ingresso.html"
+            redirect_url: "https://lagoinhacearamirim.github.io/shine/meu-ingresso.html"
         };
 
         const btnOnline = document.getElementById('btn-online');
