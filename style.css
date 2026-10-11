@@ -29,7 +29,8 @@ body {
   align-items: center;
   overflow-x: hidden;
   position: relative;
-  padding: 3rem 1rem;
+  /* Garante espaço vertical nas extremidades para os vetores respirarem no desktop e mobile */
+  padding: clamp(4rem, 8vh, 7rem) 1.5rem; 
 }
 
 @keyframes gradientBG {
@@ -42,34 +43,72 @@ body {
 .deco-bg {
   position: absolute;
   pointer-events: none;
-  z-index: 0;
-  opacity: 0.85;
-  filter: drop-shadow(0 10px 20px rgba(128, 97, 217, 0.2));
+  z-index: 0; /* Fica atrás do formulário, mas visível no fundo */
+  opacity: 0.95;
+  filter: drop-shadow(0 10px 20px rgba(128, 97, 217, 0.25));
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .deco-bg img {
   width: 100%;
   height: auto;
   display: block;
+  object-fit: contain;
 }
 
 /* Topo: Lado esquerdo (no.png) e Lado direito (laco.png) */
-.deco-no-top { top: 4%; left: 3%; width: 110px; animation: float 7s ease-in-out infinite; }
-.deco-laco-top { top: 4%; right: 3%; width: 140px; animation: float 8s ease-in-out infinite reverse; }
+.deco-no-top { 
+  top: 2%; 
+  left: 2%; 
+  width: clamp(80px, 12vw, 150px); 
+  animation: float 7s ease-in-out infinite; 
+}
+
+.deco-laco-top { 
+  top: 2%; 
+  right: 2%; 
+  width: clamp(100px, 15vw, 180px); 
+  animation: float 8s ease-in-out infinite reverse; 
+}
 
 /* Estrelas espalhadas (pelo menos 6) */
-.deco-star { opacity: 0.9; }
-.star-1 { top: 18%; left: 12%; width: 28px; animation: float 5s ease-in-out infinite; }
-.star-2 { top: 12%; right: 22%; width: 22px; animation: float 6s ease-in-out infinite 0.5s; }
-.star-3 { top: 48%; left: 4%; width: 32px; animation: float 7s ease-in-out infinite 1s; }
-.star-4 { top: 52%; right: 5%; width: 26px; animation: float 5.5s ease-in-out infinite 1.5s; }
-.star-5 { bottom: 18%; left: 15%; width: 24px; animation: float 6.5s ease-in-out infinite 0.8s; }
-.star-6 { bottom: 12%; right: 14%; width: 30px; animation: float 8s ease-in-out infinite 0.2s; }
+.deco-star { 
+  position: absolute;
+  z-index: 10; 
+  pointer-events: none;
+}
+
+.star-1 { top: 15%; left: 8%; width: clamp(20px, 3vw, 36px); animation: float 5s ease-in-out infinite; }
+.star-2 { top: 10%; right: 18%; width: clamp(18px, 2.5vw, 30px); animation: float 6s ease-in-out infinite 0.5s; }
+.star-3 { top: 45%; left: 3%; width: clamp(24px, 3.5vw, 42px); animation: float 7s ease-in-out infinite 1s; }
+.star-4 { top: 50%; right: 4%; width: clamp(20px, 3vw, 34px); animation: float 5.5s ease-in-out infinite 1.5s; }
+.star-5 { bottom: 16%; left: 10%; width: clamp(18px, 2.5vw, 32px); animation: float 6.5s ease-in-out infinite 0.8s; }
+.star-6 { bottom: 10%; right: 10%; width: clamp(22px, 3vw, 38px); animation: float 8s ease-in-out infinite 0.2s; }
 
 /* Inferiores próximos ao último botão */
-.deco-bottom-left { bottom: 2%; left: 4%; width: 110px; animation: float 7s ease-in-out infinite; }
-.deco-bottom-center { bottom: 1%; left: 48%; transform: translateX(-50%); width: 75px; animation: float 6s ease-in-out infinite 0.4s; }
-.deco-bottom-right { bottom: 2%; right: 4%; width: 110px; animation: float 8s ease-in-out infinite reverse; }
+.deco-bottom-left { 
+  bottom: 1%; 
+  left: 2%; 
+  width: clamp(90px, 13vw, 160px); 
+  animation: float 7s ease-in-out infinite; 
+}
+
+.deco-bottom-center { 
+  bottom: 0.5%; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  width: clamp(65px, 10vw, 120px); 
+  animation: float 6s ease-in-out infinite 0.4s; 
+}
+
+.deco-bottom-right { 
+  bottom: 1%; 
+  right: 2%; 
+  width: clamp(90px, 13vw, 160px); 
+  animation: float 8s ease-in-out infinite reverse; 
+}
 
 @keyframes float {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -78,15 +117,15 @@ body {
 
 .container {
   position: relative;
-  z-index: 1;
+  z-index: 5; /* Fica acima do fundo decorativo, mas abaixo de estrelas específicas se necessário */
   width: 100%;
-  max-width: 460px;
+  max-width: clamp(380px, 90vw, 520px); /* Aumenta proporcionalmente em telas grandes (Web) */
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 32px;
-  padding: 2.5rem 2rem;
+  padding: clamp(1.8rem, 4vw, 3rem) clamp(1.2rem, 3vw, 2.5rem);
   box-shadow: 0 20px 40px rgba(128, 97, 217, 0.15), inset 0 1px 3px rgba(255, 255, 255, 0.8);
 }
 
@@ -364,8 +403,18 @@ body {
 }
 
 @media (max-width: 480px) {
+  body {
+    padding: 5.5rem 1rem 6rem 1rem; /* Dá espaço superior e inferior para os vetores topo e rodapé não ficarem escondidos */
+  }
+
   .container {
-    padding: 1.75rem 1.25rem;
+    padding: 1.5rem 1rem;
     border-radius: 24px;
   }
+.deco-no-top { top: 0.8%; left: 1%; width: 75px; }
+  .deco-laco-top { top: 0.8%; right: 1%; width: 90px; }
+
+  .deco-bottom-left { bottom: 0.5%; left: 1%; width: 80px; }
+  .deco-bottom-center { bottom: 0.2%; width: 55px; }
+  .deco-bottom-right { bottom: 0.5%; right: 1%; width: 80px; }
 }
