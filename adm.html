@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Shine 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lilas-profundo: #4a2e5d;
+            --lilas-suave: #d4b5f0;
+            --fundo-claro: #f9f6fc;
+            --texto-principal: #2b2b2b;
+            --branco: #ffffff;
+            --verde-sucesso: #0d8a4f;
+            --amarelo-alerta: #b7791f;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--fundo-claro);
+            color: var(--texto-principal);
+            margin: 0;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--lilas-profundo);
+            font-size: 2.2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--branco);
+            padding: 1.25rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(74, 46, 93, 0.05);
+            border: 1px solid var(--lilas-suave);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--lilas-profundo);
+            margin: 0;
+        }
+
+        .section-box {
+            background: var(--branco);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(74, 46, 93, 0.05);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(212, 181, 240, 0.4);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            color: var(--lilas-profundo);
+            font-size: 1.4rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        th {
+            background-color: rgba(212, 181, 240, 0.15);
+            color: var(--lilas-profundo);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: rgba(249, 246, 252, 0.5);
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .badge-pago { background: #e2f8ed; color: var(--verde-sucesso); }
+        .badge-pendente { background: #fef3c7; color: var(--amarelo-alerta); }
+        .badge-especie { background: #ebf8ff; color: #2b6cb0; }
+
+        .checkbox-pago {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--lilas-profundo);
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background-color: var(--lilas-profundo);
+            color: var(--branco);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(74, 46, 93, 0.2);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>Painel Administrativo</h1>
+            <p>Conferência Shine 2026 — Controle de Inscrições e Portaria</p>
+        </header>
+
+        <!-- Cards de Estatísticas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Inscritos</h3>
+                <p class="value" id="stat-total">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Ingressos Pagos</h3>
+                <p class="value" id="stat-pagos">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Em Espécie (Pendentes)</h3>
+                <p class="value" id="stat-especie">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Arrecadação Total</h3>
+                <p class="value" id="stat-arrecadacao">R$ 0,00</p>
+            </div>
+        </div>
+
+        <div class="actions-bar">
+            <button id="btn-export-pdf" class="btn">Baixar Relatório para Portaria (PDF)</button>
+        </div>
+
+        <!-- Tabela 1: Pagamentos Online -->
+        <section class="section-box">
+            <h2 class="section-title">Inscrições Online (Cartão / Pix)</h2>
+            <div class="table-responsive">
+                <table id="table-online">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Camisa</th>
+                            <th>Código</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Tabela 2: Pagamentos em Espécie -->
+        <section class="section-box">
+            <h2 class="section-title">Pagamentos em Espécie (Presencial)</h2>
+            <div class="table-responsive">
+                <table id="table-especie">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Telefone</th>
+                            <th>Camisa</th>
+                            <th>Código</th>
+                            <th>Valor</th>
+                            <th>Marcar como Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts Supabase e jsPDF com AutoTable -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    
+    <script>
+        const SUPABASE_URL = 'https://xgnjkghwnqqekxyumzmh.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_v2Q-jBba3-V_fozjyyUieg_z-ZZmvyM';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let globalInscricoes = [];
+
+        async function carregarDados() {
+            const { data, error } = await supabaseClient
+                .from('ingressos')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro ao buscar dados:', error);
+                alert('Erro ao carregar dados do Supabase.');
+                return;
+            }
+
+            globalInscricoes = data ||hle = data || [];
+            renderizarPainel(globalInscricoes);
+        }
+
+        function renderizarPainel(lista) {
+            const tbodyOnline = document.querySelector('#table-online tbody');
+            const tbodyEspecie = document.querySelector('#table-especie tbody');
+
+            tbodyOnline.innerHTML = '';
+            tbodyEspecie.innerHTML = '';
+
+            let totalInscritos = lista.length;
+            let totalPagos = 0;
+            let totalEspeciePendentes = 0;
+            let arrecadacaoTotal = 0;
+
+            let htmlOnline = '';
+            let htmlEspecie = '';
+
+            lista.forEach(item => {
+                const valorNumerico = item.total ? item.total : (item.camisa === 'sim' ? 8500 : 4000);
+                const valorFormatado = `R$ ${(valorNumerico / 100).toFixed(2).replace('.', ',')}`;
+                const camisaTexto = item.camisa === 'sim' ? 'Sim' : 'Não';
+
+                if (item.status === 'pago') {
+                    totalPagos++;
+                    arrecadacaoTotal += valorNumerico;
+                }
+
+                if (item.status === 'pendente_especie') {
+                    totalEspeciePendentes++;
+                }
+
+                // Separação: Se o status for 'pendente_especie' vai para a tabela de espécie. Os demais (pago, pendente online) vão para online.
+                if (item.status === 'pendente_especie') {
+                    htmlEspecie += `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td>${item.tell}</td>
+                            <td>${camisaTexto}</td>
+                            <td><code>${item.ingresso}</code></td>
+                            <td>${valorFormatado}</td>
+                            <td>
+                                <input type="checkbox" class="checkbox-pago" data-id="${item.id}" onchange="mudarStatusParaPago('${item.id}', this.checked)">
+                                <span style="font-size:0.8rem; color:#666; margin-left: 5px;">Pendente</span>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    let badgeStatus = item.status === 'pago' 
+                        ? '<span class="badge badge-pago">Pago ✅</span>' 
+                        : '<span class="badge badge-pendente">Aguardando ⏳</span>';
+
+                    htmlOnline += `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td>${item.tell}</td>
+                            <td>${camisaTexto}</td>
+                            <td><code>${item.ingresso}</code></td>
+                            <td>${valorFormatado}</td>
+                            <td>${badgeStatus}</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            tbodyOnline.innerHTML = htmlOnline || '<tr><td colspan="6" class="loading">Nenhuma inscrição online encontrada.</td></tr>';
+            tbodyEspecie.innerHTML = htmlEspecie || '<tr><td colspan="6" class="loading">Nenhum pagamento em espécie pendente.</td></tr>';
+
+            // Atualiza os Cards de Estatísticas
+            document.getElementById('stat-total').textContent = totalInscritos;
+            document.getElementById('stat-pagos').textContent = totalPagos;
+            document.getElementById('stat-especie').textContent = totalEspeciePendentes;
+            document.getElementById('stat-arrecadacao').textContent = `R$ ${(arrecadacaoTotal / 100).toFixed(2).replace('.', ',')}`;
+        }
+
+        async function mudarStatusParaPago(id, marcado) {
+            if (!marcado) return;
+
+            if (confirm("Deseja confirmar o recebimento em espécie e liberar o ingresso deste participante?")) {
+                const { error } = await supabaseClient
+                    .from('ingressos')
+                    .update({ status: 'pago' })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('Erro ao atualizar status no banco de dados.');
+                    console.error(error);
+                } else {
+                    carregarDados();
+                }
+            } else {
+                carregarDados(); // Reverte a marcação visual se cancelar
+            }
+        }
+
+        // Geração do PDF para portaria
+        document.getElementById('btn-export-pdf').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(74, 46, 93);
+            doc.text("CONFERÊNCIA SHINE 2026 - RELATÓRIO DE PORTARIA", 105, 15, { align: "center" });
+
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 22, { align: "center" });
+
+            const tableData = globalInscricoes.map(item => [
+                item.name,
+                item.tell,
+                item.camisa.toUpperCase(),
+                item.ingresso,
+                item.status === 'pago' ? 'PAGO' : 'PENDENTE'
+            ]);
+
+            doc.autoTable({
+                startY: 30,
+                head: [['Nome do Participante', 'Telefone', 'Camisa', 'Código Ingresso', 'Status']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { fillColor: [74, 46, 93] },
+                styles: { fontSize: 9, cellPadding: 4 }
+            });
+
+            doc.save(`Relatorio-Portaria-Shine2026.pdf`);
+        });
+
+        // Carrega os dados ao abrir a página
+        carregarDados();
+    </script>
+</body>
+</html>
