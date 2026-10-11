@@ -160,7 +160,7 @@
     <script>
         const SUPABASE_URL = 'https://xgnjkghwnqqekxyumzmh.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_v2Q-jBba3-V_fozjyyUieg_z-ZZmvyM';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener('DOMContentLoaded', async () => {
             const ticketResult = document.getElementById('ticket-result');
@@ -176,7 +176,7 @@
             }
 
             // Consulta o status atualizado no Supabase utilizando o código do ingresso
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('ingressos')
                 .select('*')
                 .eq('ingresso', ingressoCode)
