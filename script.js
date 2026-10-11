@@ -11,6 +11,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const viewShirtBtn = document.getElementById('view-shirt-btn');
     const modal = document.getElementById('shirt-modal');
     const closeModal = document.querySelector('.close-modal');
+    const especieModal = document.getElementById('especie-success-modal');
+    const especieMsg = document.getElementById('especie-success-msg');
+    const especieBtnClose = document.getElementById('especie-btn-close');
 
     // Alternar seleção de camisa visualmente
     function updateShirtSelection(choice) {
@@ -157,40 +160,22 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Botão PAGAR EM ESPÉCIE
-    document.getElementById('btn-especie').addEventListener('click', async () => {
-        const name = document.getElementById('name').value.trim();
-        const tell = document.getElementById('tell').value.trim();
-        const camisa = document.querySelector('input[name="camisa"]:checked').value;
+especieMsg.innerHTML = `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
+    <strong>Valor a pagar:</strong> ${valor}<br>
+    <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
+    Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
 
-        if (!name || !tell) {
-            alert('Por favor, preencha seu nome e telefone.');
-            return;
-        }
+localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, status: 'pendente_especie' }));
 
-        const ingressoCode = generateIngressoCode();
-        const valor = camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00';
-        const valorTotal = camisa === 'sim' ? 8500 : 4000;
+if (especieModal && typeof especieModal.showModal === 'function') {
+    especieModal.showModal();
+} else {
+    alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
+    window.location.href = 'meu-ingresso.html';
+}
 
-        const { error } = await supabaseClient
-            .from('ingressos')
-            .insert([{
-                name: name,
-                tell: parseFloat(tell.replace(/\D/g, '')),
-                camisa: camisa,
-                status: 'pendente_especie',
-                ingresso: ingressoCode,
-                total: valorTotal
-            }]);
-
-        if (error) {
-            console.error('Erro:', error);
-            alert('Erro ao registrar inscrição.');
-            return;
-        }
-
-        alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
-        
-        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, status: 'pendente_especie' }));
-        window.location.href = 'meu-ingresso.html';
-    });
+especieBtnClose.onclick = () => {
+    especieModal.close();
+    window.location.href = 'meu-ingresso.html';
+};
 });
