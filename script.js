@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botão PAGAR ONLINE
     document.getElementById('btn-online').addEventListener('click', async () => {
+        document.getElementById('loading-overlay').style.display = 'flex';
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
         const camisa = document.querySelector('input[name="camisa"]:checked').value;
@@ -161,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
    // Botão PAGAR EM ESPÉCIE
     document.getElementById('btn-especie').addEventListener('click', async () => {
+        document.getElementById('loading-overlay').style.display = 'flex';
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
         const camisa = document.querySelector('input[name="camisa"]:checked').value;
