@@ -278,7 +278,7 @@
                 return;
             }
 
-            globalInscricoes = data ||hle = data || [];
+            globalInscricoes = data || [];
             renderizarPainel(globalInscricoes);
         }
 
@@ -298,6 +298,7 @@
             let htmlEspecie = '';
 
             lista.forEach(item => {
+                // Converte o valor da coluna total (em centavos) para reais. Se não houver, calcula com base na camisa.
                 const valorNumerico = item.total ? item.total : (item.camisa === 'sim' ? 8500 : 4000);
                 const valorFormatado = `R$ ${(valorNumerico / 100).toFixed(2).replace('.', ',')}`;
                 const camisaTexto = item.camisa === 'sim' ? 'Sim' : 'Não';
@@ -311,7 +312,7 @@
                     totalEspeciePendentes++;
                 }
 
-                // Separação: Se o status for 'pendente_especie' vai para a tabela de espécie. Os demais (pago, pendente online) vão para online.
+                // Separação por tipo de pagamento
                 if (item.status === 'pendente_especie') {
                     htmlEspecie += `
                         <tr>
