@@ -1,4 +1,4 @@
-// Configuração do Supabase (Substitua pelas suas chaves reais)
+// Configuração do Supabase
 const SUPABASE_URL = 'https://xgnjkghwnqqekxyumzmh.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_v2Q-jBba3-V_fozjyyUieg_z-ZZmvyM';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -67,16 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const ingressoCode = generateIngressoCode();
+        const telefoneNumero = parseFloat(tell.replace(/\D/g, ''));
+        const valorTotal = camisa === 'sim' ? 8500 : 4000; // Valor em centavos
+        const descricaoItem = camisa === 'sim' ? 'Inscrição Conferência Shine 2026 + Camisa' : 'Inscrição Conferência Shine 2026';
 
-        // Salvar pendente no Supabase
+        // Passo 1: Salva o pedido inicial como pendente no Supabase para obter o ID
         const { data, error } = await supabaseClient
             .from('ingressos')
             .insert([{
                 name: name,
-                tell: parseFloat(tell.replace(/\D/g, '')),
+                tell: telefoneNumero,
                 camisa: camisa,
                 status: 'pendente',
-                ingresso: ingressoCode
+                ingresso: ingressoCode,
+                total: valorTotal
             }])
             .select();
 
@@ -86,32 +90,70 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Recupera o ID do pedido gerado pelo Supabase para vincular ao order_nsu
+        // Pega o ID único gerado no banco para usar como order_nsu
         const insertedOrder = data[0];
-        const orderId = insertedOrder.id || ingressoCode;
+        const orderId = String(insertedOrder.id);
+
+        // Atualiza a linha recém criada com o order_nsu para manter o mapeamento exato
+        await supabaseClient
+            .from('ingressos')
+            .update({ order_nsu: orderId })
+            .eq('id', insertedOrder.id);
 
         // Salvar dados temporários no localStorage para recuperação imediata após redirect
         localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa }));
 
-        // Configurações para o Checkout da InfinitePay via URL direta
-        const handle = 'nayannealmeidq';
-        const redirectUrl = 'https://lagoinhacearamirim.github.io/shine/meu-ingresso/meu-ingresso.html';
-        const webhookUrl = 'https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook';
+        // Payload estruturado para a API da InfinitePay com webhook integrado
+        const payloadInfinitePay = {
+            handle: "nayannealmeidq",
+            items: [
+                {
+                    description: descricaoItem,
+                    quantity: 1,
+                    price: valorTotal
+                }
+            ],
+            order_nsu: orderId,
+            webhook_url: "https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook",
+            redirect_url: "https://lagoinhacearamirim.github.io/shine/meu-ingresso/meu-ingresso.html"
+        };
 
-        const itemDescription = camisa === 'sim' 
-            ? 'Inscrição Conferência Shine 2026 + Camisa' 
-            : 'Inscrição Conferência Shine 2026';
-        const itemPrice = camisa === 'sim' ? 8500 : 4000;
+        const btnOnline = document.getElementById('btn-online');
+        const originalText = btnOnline.innerText;
+        btnOnline.innerText = "Gerando pagamento...";
+        btnOnline.disabled = true;
 
-        const itemsJSON = JSON.stringify([{
-            name: itemDescription,
-            price: itemPrice,
-            quantity: 1
-        }]);
+        try {
+            const response = await fetch('https://api.checkout.infinitepay.io/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payloadInfinitePay)
+            });
 
-        const checkoutUrl = `https://checkout.infinitepay.io/${handle}?items=${encodeURIComponent(itemsJSON)}&redirect_url=${encodeURIComponent(redirectUrl)}&webhook_url=${encodeURIComponent(webhookUrl)}&order_nsu=${encodeURIComponent(String(orderId))}`;
+            if (!response.ok) {
+                throw new Error(`Erro API InfinitePay HTTP: ${response.status}`);
+            }
 
-        window.location.href = checkoutUrl;
+            const responseData = await response.json();
+            let checkoutUrl = responseData.url || responseData.link || (responseData.data && responseData.data.url);
+
+            if (checkoutUrl) {
+                window.location.href = checkoutUrl;
+            } else {
+                console.error("Resposta da InfinitePay sem URL:", responseData);
+                alert('Link de checkout ausente retornado pela InfinitePay.');
+                btnOnline.innerText = originalText;
+                btnOnline.disabled = false;
+            }
+
+        } catch (err) {
+            console.error('Erro na operação:', err);
+            alert('Erro ao conectar com a InfinitePay. Tente novamente.');
+            btnOnline.innerText = originalText;
+            btnOnline.disabled = false;
+        }
     });
 
     // Botão PAGAR EM ESPÉCIE
@@ -127,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ingressoCode = generateIngressoCode();
         const valor = camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00';
+        const valorTotal = camisa === 'sim' ? 8500 : 4000;
 
         const { error } = await supabaseClient
             .from('ingressos')
@@ -135,7 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 tell: parseFloat(tell.replace(/\D/g, '')),
                 camisa: camisa,
                 status: 'pendente_especie',
-                ingresso: ingressoCode
+                ingresso: ingressoCode,
+                total: valorTotal
             }]);
 
         if (error) {
