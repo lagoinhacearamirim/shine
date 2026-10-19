@@ -14,6 +14,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const especieModal = document.getElementById('especie-success-modal');
     const especieMsg = document.getElementById('especie-success-msg');
     const especieBtnClose = document.getElementById('especie-btn-close');
+    const btnProgramacao = document.getElementById('btn-programacao');
+    const programacaoDialog = document.getElementById('programacao-dialog');
+    const programacaoBtnClose = document.getElementById('programacao-btn-close');
+
+    if (btnProgramacao && programacaoDialog) {
+        btnProgramacao.addEventListener('click', () => {
+            if (typeof programacaoDialog.showModal === 'function') {
+                programacaoDialog.showModal();
+            }
+        });
+    }
+
+    if (programacaoBtnClose && programacaoDialog) {
+        programacaoBtnClose.addEventListener('click', () => {
+            programacaoDialog.close();
+        });
+    }
 
     // Alternar seleção de camisa visualmente
     function updateShirtSelection(choice) {
