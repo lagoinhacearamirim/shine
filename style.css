@@ -25,12 +25,13 @@ body {
   color: var(--texto-escuro);
   min-height: 100vh;
   display: flex;
+  flex-direction: column; /* Alinha o container e o botão em coluna */
   justify-content: center;
   align-items: center;
   overflow-x: hidden;
   position: relative;
   /* Garante espaço vertical nas extremidades para os vetores respirarem no desktop e mobile */
-  padding: clamp(4rem, 8vh, 7rem) 1.5rem; 
+  padding: clamp(3rem, 6vh, 5rem) 1.5rem; 
 }
 
 @keyframes gradientBG {
@@ -127,6 +128,7 @@ body {
   border-radius: 32px;
   padding: clamp(1.8rem, 4vw, 3rem) clamp(1.2rem, 3vw, 2.5rem);
   box-shadow: 0 20px 40px rgba(128, 97, 217, 0.15), inset 0 1px 3px rgba(255, 255, 255, 0.8);
+  margin-bottom: 1.5rem; /* Espaço entre o container do formulário e o botão de patrocinador */
 }
 
 .header {
@@ -402,17 +404,68 @@ body {
   margin: 1rem 0;
 }
 
+/* Botão Seja um Patrocinador - Posicionado com margem do container */
+.btn-patrocinador {
+  position: relative;
+  z-index: 10;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--rosa-bubblegum), var(--lilas-profundo));
+  color: var(--branco-perolado);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(128, 97, 217, 0.3);
+  border: 1px solid var(--branco-perolado);
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-patrocinador:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(128, 97, 217, 0.4);
+}
+
+/* Centralização Exata das Dialogs nativas do HTML (<dialog>) */
+dialog#programacao-dialog,
+dialog#especie-success-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  border: none;
+  border-radius: 20px;
+  padding: 2rem;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2);
+  background: #ffffff;
+  text-align: center;
+}
+
+/* Fundo escurecido elegante ao abrir a dialog */
+dialog#programacao-dialog::backdrop,
+dialog#especie-success-modal::backdrop {
+  background: rgba(43, 43, 43, 0.5);
+  backdrop-filter: blur(2px);
+}
+
 @media (max-width: 480px) {
   body {
-    padding: 5.5rem 1rem 6rem 1rem; /* Dá espaço superior e inferior para os vetores topo e rodapé não ficarem escondidos */
+    padding: 4.5rem 1rem 4.5rem 1rem;
   }
 
   .container {
     padding: 1.5rem 1rem;
     border-radius: 24px;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.25rem;
   }
-.deco-no-top { top: 0.8%; left: 1%; width: 75px; }
+
+  .deco-no-top { top: 0.8%; left: 1%; width: 75px; }
   .deco-laco-top { top: 0.8%; right: 1%; width: 90px; }
 
   .deco-bottom-left { bottom: 0.5%; left: 1%; width: 80px; }
@@ -420,52 +473,31 @@ body {
   .deco-bottom-right { bottom: 0.5%; right: 1%; width: 80px; }
 }
 
-dialog#especie-success-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
-    border: none;
-    border-radius: 20px;
-    padding: 2rem;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2);
-    background: #ffffff;
-    text-align: center;
-}
-
-/* Fundo escurecido elegante ao abrir a dialog */
-dialog#especie-success-modal::backdrop {
-    background: rgba(43, 43, 43, 0.5);
-    backdrop-filter: blur(2px);
-}
 /* Animação flutuante para o laço */
 @keyframes floatLaco {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
 
 .loader-laco {
-    width: 140px;
-    height: auto;
-    animation: floatLaco 2s ease-in-out infinite;
-    margin-bottom: 20px;
+  width: 140px;
+  height: auto;
+  animation: floatLaco 2s ease-in-out infinite;
+  margin-bottom: 20px;
 }
 
 /* Container horizontal das estrelas */
 .loader-stars {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 
 .loader-stars img {
-    width: 22px;
-    height: auto;
-    animation: jumpStar 1s ease-in-out infinite;
+  width: 22px;
+  height: auto;
+  animation: jumpStar 1s ease-in-out infinite;
 }
 
 /* Atraso em cascata para as estrelas pularem em sequência */
@@ -474,42 +506,6 @@ dialog#especie-success-modal::backdrop {
 .loader-stars img:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes jumpStar {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
-}
-/* Botão Seja um Patrocinador */
-.btn-patrocinador {
-    position: absolute;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    padding: 0.6rem 1.2rem;
-    border-radius: 999px;
-    background: linear-gradient(135deg, var(--rosa-bubblegum), var(--lilas-profundo));
-    color: var(--branco-perolado);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    box-shadow: 0 4px 15px rgba(128, 97, 217, 0.3);
-    border: 1px solid var(--branco-perolado);
-    white-space: nowrap;
-    transition: all 0.3s ease;
-}
-
-.btn-patrocinador:hover {
-    transform: translateX(-50%) translateY(-2px);
-    box-shadow: 0 6px 20px rgba(128, 97, 217, 0.4);
-}
-
-/* Backdrop para a Dialog de Programação */
-dialog#programacao-dialog::backdrop {
-    background: rgba(43, 43, 43, 0.5);
-    backdrop-filter: blur(2px);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0;
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
