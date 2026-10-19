@@ -190,8 +190,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const ingressoCode = generateIngressoCode();
-        const valor = camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00';
-        const valorTotal = camisa === 'sim' ? 8500 : 4000;
+        const valor = camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00';
+        const valorTotal = camisa === 'sim' ? 8000 : 3000;
 
         const { error } = await supabaseClient
             .from('ingressos')
