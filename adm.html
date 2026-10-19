@@ -299,9 +299,11 @@
 
             lista.forEach(item => {
                 // Converte o valor da coluna total (em centavos) para reais. Se não houver, calcula com base na camisa.
-                const valorNumerico = item.total ? item.total : (item.camisa === 'sim' ? 8500 : 4000);
+                const valorNumerico = item.total ? item.total : (item.camisa === 'sim' ? 8000 : 3000);
                 const valorFormatado = `R$ ${(valorNumerico / 100).toFixed(2).replace('.', ',')}`;
-                const camisaTexto = item.camisa === 'sim' ? 'Sim' : 'Não';
+                const camisaTexto = item.camisa === 'sim' 
+                    ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})` 
+                    : 'Não';
 
                 if (item.status === 'pago') {
                     totalPagos++;
@@ -392,14 +394,14 @@
             const tableData = globalInscricoes.map(item => [
                 item.name,
                 item.tell,
-                item.camisa.toUpperCase(),
+                item.camisa === 'sim' ? `SIM (${item.tamanho_camisa || '-'})` : 'NÃO',
                 item.ingresso,
                 item.status === 'pago' ? 'PAGO' : 'PENDENTE'
             ]);
 
             doc.autoTable({
                 startY: 30,
-                head: [['Nome do Participante', 'Telefone', 'Camisa', 'Código Ingresso', 'Status']],
+                head: [['Nome do Participante', 'Telefone', 'Camisa (Tam)', 'Código Ingresso', 'Status']],
                 body: tableData,
                 theme: 'grid',
                 headStyles: { fillColor: [74, 46, 93] },
