@@ -476,3 +476,34 @@ dialog#especie-success-modal::backdrop {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-12px); }
 }
+/* Botão Seja um Patrocinador */
+.btn-patrocinador {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--rosa-bubblegum), var(--lilas-profundo));
+    color: var(--branco-perolado);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(128, 97, 217, 0.3);
+    border: 1px solid var(--branco-perolado);
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.btn-patrocinador:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(128, 97, 217, 0.4);
+}
+
+/* Backdrop para a Dialog de Programação */
+dialog#programacao-dialog::backdrop {
+    background: rgba(43, 43, 43, 0.5);
+    backdrop-filter: blur(2px);
+}
