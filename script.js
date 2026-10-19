@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ingressoCode = generateIngressoCode();
         const telefoneNumero = parseFloat(tell.replace(/\D/g, ''));
-        const valorTotal = camisa === 'sim' ? 8500 : 4000; // Valor em centavos
+        const valorTotal = camisa === 'sim' ? 8000 : 3000; // Valor em centavos
         const descricaoItem = camisa === 'sim' ? 'Inscrição Conferência Shine 2026 + Camisa' : 'Inscrição Conferência Shine 2026';
 
         // Passo 1: Salva o pedido inicial como pendente no Supabase para obter o ID
