@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cardNao = document.getElementById('card-nao');
     const radioSim = document.getElementById('camisa-sim');
     const radioNao = document.getElementById('camisa-nao');
+    const tamanhoContainer = document.getElementById('tamanho-container');
+    const tamanhoSelect = document.getElementById('tamanho-camisa');
     const viewShirtBtn = document.getElementById('view-shirt-btn');
     const modal = document.getElementById('shirt-modal');
     const closeModal = document.querySelector('.close-modal');
@@ -38,10 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
             cardSim.classList.add('selected');
             cardNao.classList.remove('selected');
             radioSim.checked = true;
+            if (tamanhoContainer) tamanhoContainer.style.display = 'block';
         } else {
             cardNao.classList.add('selected');
             cardSim.classList.remove('selected');
             radioNao.checked = true;
+            if (tamanhoContainer) tamanhoContainer.style.display = 'none';
         }
     }
 
@@ -77,20 +81,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Botão PAGAR ONLINE
     document.getElementById('btn-online').addEventListener('click', async () => {
-        document.getElementById('loading-overlay').style.display = 'flex';
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
-        const camisa = document.querySelector('input[name="camisa"]:checked').value;
+        const opcaoCamisa = document.querySelector('input[name="camisa"]:checked').value;
+        const tamanhoCamisa = tamanhoSelect ? tamanhoSelect.value : '';
 
         if (!name || !tell) {
             alert('Por favor, preencha seu nome e telefone.');
             return;
         }
 
+        if (opcaoCamisa === 'sim' && !tamanhoCamisa) {
+            alert('Por favor, selecione o tamanho da camisa.');
+            return;
+        }
+
+        document.getElementById('loading-overlay').style.display = 'flex';
+
+        const camisaValorFinal = opcaoCamisa === 'sim' ? tamanhoCamisa : 'não';
         const ingressoCode = generateIngressoCode();
         const telefoneNumero = parseFloat(tell.replace(/\D/g, ''));
-        const valorTotal = camisa === 'sim' ? 8000 : 3000; // Valor em centavos
-        const descricaoItem = camisa === 'sim' ? 'Inscrição Conferência Shine 2026 + Camisa' : 'Inscrição Conferência Shine 2026';
+        const valorTotal = opcaoCamisa === 'sim' ? 8000 : 3000; // Valor em centavos
+        const descricaoItem = opcaoCamisa === 'sim' ? `Inscrição Conferência Shine 2026 + Camisa (${tamanhoCamisa})` : 'Inscrição Conferência Shine 2026';
 
         // Passo 1: Salva o pedido inicial como pendente no Supabase para obter o ID
         const { data, error } = await supabaseClient
@@ -98,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .insert([{
                 name: name,
                 tell: telefoneNumero,
-                camisa: camisa,
+                camisa: camisaValorFinal,
                 status: 'pendente',
                 ingresso: ingressoCode,
                 total: valorTotal
@@ -106,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .select();
 
         if (error || !data || data.length === 0) {
+            document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro ao salvar no Supabase:', error);
             alert('Erro ao processar inscrição. Tente novamente.');
             return;
@@ -122,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .eq('id', insertedOrder.id);
 
         // Salvar dados temporários no localStorage para recuperação imediata após redirect
-        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa }));
+        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa: camisaValorFinal }));
 
         // Payload estruturado para a API da InfinitePay com webhook integrado
         const payloadInfinitePay = {
@@ -163,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkoutUrl) {
                 window.location.href = checkoutUrl;
             } else {
+                document.getElementById('loading-overlay').style.display = 'none';
                 console.error("Resposta da InfinitePay sem URL:", responseData);
                 alert('Link de checkout ausente retornado pela InfinitePay.');
                 btnOnline.innerText = originalText;
@@ -170,6 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (err) {
+            document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro na operação:', err);
             alert('Erro ao conectar com a InfinitePay. Tente novamente.');
             btnOnline.innerText = originalText;
@@ -179,42 +194,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
    // Botão PAGAR EM ESPÉCIE
     document.getElementById('btn-especie').addEventListener('click', async () => {
-        document.getElementById('loading-overlay').style.display = 'flex';
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
-        const camisa = document.querySelector('input[name="camisa"]:checked').value;
+        const opcaoCamisa = document.querySelector('input[name="camisa"]:checked').value;
+        const tamanhoCamisa = tamanhoSelect ? tamanhoSelect.value : '';
 
         if (!name || !tell) {
             alert('Por favor, preencha seu nome e telefone.');
             return;
         }
 
+        if (opcaoCamisa === 'sim' && !tamanhoCamisa) {
+            alert('Por favor, selecione o tamanho da camisa.');
+            return;
+        }
+
+        document.getElementById('loading-overlay').style.display = 'flex';
+
+        const camisaValorFinal = opcaoCamisa === 'sim' ? tamanhoCamisa : 'não';
         const ingressoCode = generateIngressoCode();
-        const valor = camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00';
-        const valorTotal = camisa === 'sim' ? 8000 : 3000;
+        const valor = opcaoCamisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00';
+        const valorTotal = opcaoCamisa === 'sim' ? 8000 : 3000;
 
         const { error } = await supabaseClient
             .from('ingressos')
             .insert([{
                 name: name,
                 tell: parseFloat(tell.replace(/\D/g, '')),
-                camisa: camisa,
+                camisa: camisaValorFinal,
                 status: 'pendente_especie',
                 ingresso: ingressoCode,
                 total: valorTotal
             }]);
 
         if (error) {
+            document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro:', error);
             alert('Erro ao registrar inscrição.');
             return;
         }
+        
         especieMsg.innerHTML = `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
             <strong>Valor a pagar:</strong> ${valor}<br>
             <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
             Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
 
-        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, status: 'pendente_especie' }));
+        localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa: camisaValorFinal, status: 'pendente_especie' }));
+
+        document.getElementById('loading-overlay').style.display = 'none';
 
         if (especieModal && typeof especieModal.showModal === 'function') {
             especieModal.showModal();
