@@ -197,8 +197,8 @@
                 statusBadge = '<span class="status-badge status-pendente">PENDENTE ⏳</span>';
             }
 
-            const valorFormatado = data.total ? `R$ ${(data.total / 100).toFixed(2).replace('.', ',')}` : (data.camisa === 'sim' ? 'R$ 85,00' : 'R$ 40,00');
-            const camisaTexto = data.camisa === 'sim' ? 'Sim (+ Camisa)' : 'Não';
+            const valorFormatado = data.total ? `R$ ${(data.total / 100).toFixed(2).replace('.', ',')}` : (data.camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00');
+            const camisaTexto = data.camisa === 'sim' ? `Sim (+ Camisa - Tam ${data.tamanho_camisa || 'N/A'})` : 'Não';
 
             // Exibe os dados no card da página
             ticketResult.innerHTML = `
