@@ -21,7 +21,7 @@
 </div>
     <!-- Elementos Decorativos Holográficos de Fundo -->
     <div class="deco-bg deco-no-top"><img src="no.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-laco-top"><img src="laco.png" alt="" onerror="this.style.display='none'"></div>
+    <div class="deco-bg deco-laco-top"><img src="shineLogo.png" alt="" onerror="this.style.display='none'"></div>
 
     <!-- Estrelas Espalhadas (Pelo menos 6 instâncias) -->
     <div class="deco-bg deco-star star-1"><img src="estrela.png" alt="" onerror="this.style.display='none'"></div>
@@ -39,10 +39,10 @@
             </div>
             <h2 class="section-title">INSCRIÇÕES ABERTAS</h2>
             
-            <div class="date-badge">
+            <button type="button" id="btn-programacao" class="date-badge" style="border: 1px solid var(--branco-perolado); cursor: pointer; text-align: center;">
                 <div class="save-date-badge">Save<br>date</div>
-                <p>05/12; Check-in às 14h</p>
-            </div>
+                <p>PROGRAMAÇÃO</p>
+            </button>
         </header>
 
         <!-- Formulário de Inscrição -->
@@ -93,8 +93,8 @@
 
     <!-- Elementos Inferiores Próximos ao Último Botão -->
     <div class="deco-bg deco-bottom-left"><img src="blackhole.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-bottom-center"><img src="no.png" alt="" onerror="this.style.display='none'"></div>
-    <div class="deco-bg deco-bottom-right"><img src="shineLogo.png" alt="" onerror="this.style.display='none'"></div>
+    <a href="https://wa.me/5584991501708" target="_blank" class="btn-patrocinador">Seja um patrocinador</a>
+    <div class="deco-bg deco-bottom-right"><img src="no.png" alt="" onerror="this.style.display='none'"></div>
 
     <!-- Modal para visualizar a camisa -->
     <div id="shirt-modal" class="modal">
@@ -105,6 +105,18 @@
             <p><em>"Oséias 11:4"</em></p>
         </div>
     </div>
+
+    <!-- Dialog da Programação -->
+    <dialog id="programacao-dialog" style="border: none; border-radius: 20px; padding: 2rem; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2); background: #ffffff; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h3 style="font-family: 'Playfair Display', serif; color: #4a2e5d; margin-top: 0; font-size: 1.5rem; margin-bottom: 1rem;">PROGRAMAÇÃO</h3>
+        <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem 0; color: #444; font-size: 0.95rem; line-height: 1.8; text-align: left;">
+            <li><strong>14h</strong> - Início do check-in;</li>
+            <li><strong>15h às 17h30</strong> - Culto da tarde;</li>
+            <li><strong>18h às 19h</strong> - Shine Secret;</li>
+            <li><strong>19h30</strong> - Início do culto da noite</li>
+        </ul>
+        <button id="programacao-btn-close" style="background-color: #4a2e5d; color: #ffffff; border: none; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%;">Fechar</button>
+    </dialog>
     
     <dialog id="especie-success-modal" style="border: none; border-radius: 20px; padding: 2rem; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2); background: #ffffff; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
     <h3 style="font-family: 'Playfair Display', serif; color: #4a2e5d; margin-top: 0; font-size: 1.5rem;">Inscrição Realizada!</h3>
