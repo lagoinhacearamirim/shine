@@ -145,9 +145,7 @@
             <p>Conferência Shine 2026</p>
         </header>
 
-        <div id="ticket-result">
-            <p style="color: #666; margin: 2rem 0;">Buscando seu ingresso...</p>
-        </div>
+        <div id="ticket-result"><form id="ticket-search-form" class="ticket-card" style="margin-top:1.5rem"><label id="search-label" for="search-value">Telefone (WhatsApp)</label><input id="search-value" required placeholder="Digite seu telefone" style="width:100%;box-sizing:border-box;padding:.9rem;margin:.6rem 0;border:1px solid var(--lilas-suave);border-radius:10px;font:inherit"><button id="search-submit" class="btn btn-primary" type="submit">Consultar ingresso</button><button id="toggle-search-mode" type="button" style="display:block;margin:.4rem auto;border:0;background:none;color:var(--lilas-profundo);text-decoration:underline;font-size:.78rem;cursor:pointer">Tentar pelo nome completo</button><p id="search-message" role="status"></p></form><div id="ticket-details"></div></div>
 
         <div class="actions">
             <button id="btn-download" class="btn btn-primary" style="display:none;">BAIXAR INGRESSO EM PDF</button>
@@ -158,132 +156,27 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        const SUPABASE_URL = 'https://xgnjkghwnqqekxyumzmh.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_v2Q-jBba3-V_fozjyyUieg_z-ZZmvyM';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            const ticketResult = document.getElementById('ticket-result');
-            const btnDownload = document.getElementById('btn-download');
-
-            // Recupera dados salvos localmente no navegador após o cadastro
-            const tempData = JSON.parse(localStorage.getItem('shine_temp_ingresso') || '{}');
-            let ingressoCode = tempData.ingresso;
-
-            if (!ingressoCode) {
-                ticketResult.innerHTML = `<p style="color: #e53e3e; margin: 1.5rem 0;">Nenhum ingresso recente encontrado neste navegador. Realize a inscrição na página inicial.</p>`;
-                return;
-            }
-
-            // Consulta o status atualizado no Supabase utilizando o código do ingresso
-            const { data, error } = await supabaseClient
-                .from('ingressos')
-                .select('*')
-                .eq('ingresso', ingressoCode)
-                .single();
-
-            if (error || !data) {
-                ticketResult.innerHTML = `<p style="color: #e53e3e; margin: 1.5rem 0;">Ingresso ${ingressoCode} não localizado no banco de dados.</p>`;
-                return;
-            }
-
-            // Formatações visuais
-            let statusBadge = '';
-            if (data.status === 'pago') {
-                statusBadge = '<span class="status-badge status-pago">PAGO ✅</span>';
-            } else if (data.status === 'pendente_especie') {
-                statusBadge = '<span class="status-badge status-especie">AGUARDANDO ESPÉCIE 💵</span>';
-            } else {
-                statusBadge = '<span class="status-badge status-pendente">PENDENTE ⏳</span>';
-            }
-
-            const valorFormatado = data.total ? `R$ ${(data.total / 100).toFixed(2).replace('.', ',')}` : (data.camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00');
-            const camisaTexto = data.camisa === 'sim' ? `Sim (+ Camisa - Tam ${data.tamanho_camisa || 'N/A'})` : 'Não';
-
-            // Exibe os dados no card da página
-            ticketResult.innerHTML = `
-                <div class="ticket-card">
-                    <div class="ticket-info"><span>Nome:</span> <strong>${data.name}</strong></div>
-                    <div class="ticket-info"><span>Telefone:</span> <strong>${data.tell}</strong></div>
-                    <div class="ticket-info"><span>Camisa:</span> <strong>${camisaTexto}</strong></div>
-                    <div class="ticket-info"><span>Valor:</span> <strong>${valorFormatado}</strong></div>
-                    <div class="ticket-info"><span>Status:</span> <strong>${statusBadge}</strong></div>
-                    <div class="ticket-code">${data.ingresso}</div>
-                </div>
-            `;
-
-            // Libera o botão de download em PDF se o pagamento estiver aprovado
-            if (data.status === 'pago') {
-                btnDownload.style.display = 'block';
-                btnDownload.addEventListener('click', () => {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-
-                    // Cores e Estilo do PDF
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(20);
-                    doc.setTextColor(74, 46, 93); // Lilás Profundo
-                    doc.text("CONFERÊNCIA SHINE 2026", 105, 20, { align: "center" });
-
-                    doc.setFontSize(12);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text("COMPROVANTE OFICIAL DE INSCRIÇÃO", 105, 28, { align: "center" });
-
-                    // Linha divisoria
-                    doc.setDrawColor(212, 181, 240);
-                    doc.setLineWidth(0.5);
-                    doc.line(20, 35, 190, 35);
-
-                    // Informações do Participante
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(14);
-                    doc.setTextColor(40, 40, 40);
-                    doc.text("Dados do Participante", 20, 48);
-
-                    doc.setFont("Helvetica", "normal");
-                    doc.setFontSize(11);
-                    doc.text(`Nome Completo: ${data.name}`, 20, 58);
-                    doc.text(`Telefone: ${data.tell}`, 20, 66);
-                    doc.text(`Incluso Camisa: ${camisaTexto}`, 20, 74);
-                    doc.text(`Valor Pago: ${valorFormatado}`, 20, 82);
-                    doc.text(`Status do Pagamento: APROVADO (PAGO)`, 20, 90);
-
-                    // Detalhes do Evento
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(14);
-                    doc.text("Informações do Evento", 20, 106);
-
-                    doc.setFont("Helvetica", "normal");
-                    doc.setFontSize(11);
-                    doc.text("Local: Lagoinha Ceará-Mirim / RN", 20, 116);
-                    doc.text("Data: 05/12/2026", 20, 124);
-                    doc.text("Horário: 14:00 (check-in)", 20, 132);
-
-                    // Caixa Destacada com o Número do Ingresso
-                    doc.setFillColor(249, 246, 252);
-                    doc.setDrawColor(74, 46, 93);
-                    doc.roundedRect(20, 145, 170, 32, 3, 3, 'FD');
-
-                    doc.setFont("Helvetica", "bold");
-                    doc.setFontSize(10);
-                    doc.setTextColor(74, 46, 93);
-                    doc.text("CÓDIGO ÚNICO DO INGRESSO", 105, 153, { align: "center" });
-
-                    doc.setFontSize(16);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(`${data.ingresso}`, 105, 167, { align: "center" });
-
-                    // Rodapé do PDF
-                    doc.setFont("Helvetica", "italic");
-                    doc.setFontSize(9);
-                    doc.setTextColor(150, 150, 150);
-                    doc.text("Apresente este documento (digital ou impresso) na entrada do evento.", 105, 192, { align: "center" });
-
-                    // Salva o arquivo PDF
-                    doc.save(`Ingresso-Shine2026-${data.ingresso}.pdf`);
-                });
-            }
-        });
-    </script>
+const SUPABASE_URL='https://xgnjkghwnqqekxyumzmh.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_v2Q-jBba3-V_fozjyyUieg_z-ZZmvyM';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const WEBHOOK_URL='https://xgnjkghwnqqekxyumzmh.supabase.co/functions/v1/infinitepay-webhook';
+document.addEventListener('DOMContentLoaded',()=>{
+ const form=document.getElementById('ticket-search-form'),input=document.getElementById('search-value'),label=document.getElementById('search-label'),toggle=document.getElementById('toggle-search-mode'),msg=document.getElementById('search-message'),details=document.getElementById('ticket-details'),download=document.getElementById('btn-download');
+ let mode='phone',ticket=null,timer=null,busy=false;
+ const esc=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const money=v=>(Number(v||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+ toggle.onclick=()=>{mode=mode==='phone'?'name':'phone';label.textContent=mode==='phone'?'Telefone (WhatsApp)':'Nome completo';input.type='text';input.inputMode=mode==='phone'?'tel':'text';input.placeholder=mode==='phone'?'Digite seu telefone':'Digite seu nome completo';toggle.textContent=mode==='phone'?'Tentar pelo nome completo':'Tentar pelo telefone';input.value='';msg.textContent='';input.focus();};
+ function eventHtml(){return '<section class="ticket-card"><h3>Informações do evento</h3><div class="ticket-info"><span>Evento:</span><strong>Conferência Laços 2026</strong></div><div class="ticket-info"><span>Local:</span><strong>Lagoinha Ceará-Mirim / RN</strong></div><div class="ticket-info"><span>Data:</span><strong>05/12/2026</strong></div><div class="ticket-info"><span>Check-in:</span><strong>14h</strong></div><div class="ticket-info"><span>Sessão 1:</span><strong>15h às 17h30</strong></div><div class="ticket-info"><span>Intervalo:</span><strong>18h às 19h</strong></div><div class="ticket-info"><span>Sessão 2:</span><strong>19h30</strong></div></section>';}
+ function render(d){ticket=d;const shirt=d.camisa==='sim'?'Sim — tamanho '+esc(d.tamanho_camisa||'não informado'):'Não';const status=d.status==='pago'?'<span class="status-badge status-pago">PAGO ✅</span>':d.status==='pendente_especie'?'<span class="status-badge status-especie">PENDENTE — pagamento em espécie</span>':'<span class="status-badge status-pendente">PENDENTE ⏳</span>';
+ details.innerHTML='<section class="ticket-card"><h3>Dados do participante</h3><div class="ticket-info"><span>Nome:</span><strong>'+esc(d.name)+'</strong></div><div class="ticket-info"><span>Telefone:</span><strong>'+esc(d.tell)+'</strong></div><div class="ticket-info"><span>Camisa:</span><strong>'+shirt+'</strong></div><div class="ticket-info"><span>Valor:</span><strong>'+money(d.total)+'</strong></div><div class="ticket-info"><span>Pagamento:</span><strong>'+status+'</strong></div><div class="ticket-code">'+esc(d.ingresso)+'</div><div id="payment-action" style="margin-top:1rem"></div><p id="payment-message" role="status"></p></section>'+eventHtml();
+ download.style.display=d.status==='pago'?'block':'none';
+ if(d.status==='pago')download.onclick=()=>{const doc=new window.jspdf.jsPDF();doc.setFontSize(18);doc.text('CONFERÊNCIA LAÇOS 2026',105,20,{align:'center'});doc.setFontSize(12);doc.text('COMPROVANTE OFICIAL DE INSCRIÇÃO',105,29,{align:'center'});doc.text('Nome: '+String(d.name||'').slice(0,70),20,48);doc.text('Telefone: '+String(d.tell||''),20,58);doc.text('Camisa: '+shirt,20,68);doc.text('Valor pago: '+money(d.total),20,78);doc.text('Status: PAGO',20,88);doc.text('Local: Lagoinha Ceará-Mirim / RN',20,105);doc.text('Data: 05/12/2026 — Check-in: 14h',20,115);doc.text('Ingresso: '+String(d.ingresso||''),20,135);doc.save('Ingresso-Laços2026-'+d.ingresso+'.pdf');};
+ const action=document.getElementById('payment-action');if(d.status==='pendente'||d.status==='pendente_especie'){action.innerHTML='<button type="button" id="btn-pay" class="btn btn-primary">'+(d.status==='pendente_especie'?'Pagar online':'Pagar agora')+'</button>';document.getElementById('btn-pay').onclick=pay;}
+ }
+ async function pay(){if(!ticket||busy)return;busy=true;const btn=document.getElementById('btn-pay'),pm=document.getElementById('payment-message');btn.disabled=true;btn.textContent='Gerando pagamento...';try{const payload={handle:'nayannealmeidq',items:[{description:ticket.camisa==='sim'?'Inscrição Conferência Laços 2026 + Camisa ('+(ticket.tamanho_camisa||'')+')':'Inscrição Conferência Laços 2026',quantity:1,price:Number(ticket.total)||(ticket.camisa==='sim'?8000:3000)}],order_nsu:String(ticket.order_nsu||ticket.id),webhook_url:WEBHOOK_URL,redirect_url:'https://lagoinhacearamirim.github.io/shine/meu-ingresso.html'};const r=await fetch('https://api.checkout.infinitepay.io/links',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!r.ok)throw Error('Erro da InfinitePay: HTTP '+r.status);const j=await r.json(),url=j.url||j.link||(j.data&&j.data.url);if(!url)throw Error('Link de pagamento não retornado.');location.assign(url);}catch(e){pm.textContent=e.message||'Erro ao iniciar pagamento.';btn.disabled=false;btn.textContent=ticket.status==='pendente_especie'?'Pagar online':'Pagar agora';busy=false;}}
+ async function refresh(){if(!ticket)return;const r=await supabaseClient.from('ingressos').select('*').eq('id',ticket.id).maybeSingle();if(!r.error&&r.data){const old=ticket.status;render(r.data);if(old!=='pago'&&r.data.status==='pago'){const p=document.getElementById('payment-message');if(p)p.textContent='Pagamento confirmado! Seu ingresso está liberado.';}}}
+ form.onsubmit=async e=>{e.preventDefault();const term=input.value.trim();if(!term)return;details.innerHTML='';download.style.display='none';ticket=null;if(timer)clearInterval(timer);msg.textContent='Consultando o Supabase...';const submit=document.getElementById('search-submit');submit.disabled=true;try{let q=supabaseClient.from('ingressos').select('*');if(mode==='phone'){const digits=term.replace(/\D/g,'');if(digits.length<8)throw Error('Digite um telefone válido com DDD.');q=q.eq('tell',Number(digits));}else{if(term.length<3)throw Error('Digite seu nome completo.');q=q.ilike('name',term.replace(/[%_,]/g,' ').replace(/\s+/g,' ').trim());}const r=await q.limit(10);if(r.error)throw r.error;if(!r.data||!r.data.length){msg.textContent='Nenhum ingresso encontrado. Confira os dados e tente novamente.';return;}if(r.data.length!==1){msg.textContent='Encontramos mais de um ingresso. Pesquise pelo telefone ou tente o nome completo.';return;}msg.textContent='Ingresso localizado.';render(r.data[0]);if(ticket.status==='pendente'||ticket.status==='pendente_especie')timer=setInterval(refresh,5000);}catch(err){console.error(err);msg.textContent=err.message||'Não foi possível consultar o ingresso.';}finally{submit.disabled=false;}};
+});
+</script>
 </body>
 </html>
