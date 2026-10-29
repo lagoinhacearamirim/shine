@@ -227,15 +227,15 @@ body {
 
 .shirt-selection-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
 }
 
 .shirt-card {
   background: rgba(249, 229, 245, 0.6);
   border: 1.5px solid var(--lilas-suave);
   border-radius: 20px;
-  padding: 1.25rem 1rem;
+  padding: 0.85rem 0.4rem;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -260,9 +260,11 @@ body {
 
 .card-text {
   font-family: 'Playfair Display', serif;
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--texto-escuro);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 .radio-indicator {
@@ -455,6 +457,19 @@ dialog#especie-success-modal::backdrop {
 }
 
 @media (max-width: 480px) {
+  .shirt-selection-container {
+    gap: 0.35rem;
+  }
+
+  .shirt-card {
+    padding: 0.75rem 0.3rem;
+    border-radius: 14px;
+  }
+
+  .card-text {
+    font-size: 0.68rem;
+  }
+
   body {
     padding: 4.5rem 1rem 4.5rem 1rem;
   }
