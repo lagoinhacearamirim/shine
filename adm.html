@@ -206,6 +206,23 @@
         .view-panel[hidden] {
             display: none !important;
         }
+
+        .search-filter {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--lilas-suave);
+            border-radius: 12px;
+            background: var(--branco);
+            color: var(--texto-principal);
+            font: inherit;
+        }
+
+        .search-filter:focus {
+            outline: 2px solid var(--lilas-suave);
+            outline-offset: 1px;
+        }
     </style>
 </head>
 <body>
@@ -245,6 +262,7 @@
         </div>
 
         <div id="view-inscricoes" class="view-panel">
+            <input type="search" id="search-inscricoes" class="search-filter" placeholder="Pesquisar inscrições pelo nome..." aria-label="Pesquisar inscrições pelo nome" autocomplete="off">
             <section class="section-box">
                 <h2 class="section-title">Pagamentos Pendentes</h2>
                 <div class="table-responsive">
@@ -289,21 +307,23 @@
         </div>
 
         <div id="view-camisas" class="view-panel" hidden>
+            <input type="search" id="search-camisas" class="search-filter" placeholder="Pesquisar camisas pelo nome..." aria-label="Pesquisar camisas pelo nome" autocomplete="off">
             <section class="section-box">
-                <h2 class="section-title">Compras Somente de Camisa</h2>
+                <h2 class="section-title">Camisas — compras avulsas e inscrições com camisa</h2>
                 <div class="table-responsive">
                     <table id="table-camisas">
                         <thead>
                             <tr>
                                 <th>Nome</th>
                                 <th>Telefone</th>
+                                <th>Tipo</th>
                                 <th>Tamanho</th>
                                 <th>Valor</th>
                                 <th>Status / ação</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="5" class="loading">Carregando dados...</td></tr>
+                            <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -339,6 +359,14 @@
             renderizarPainel(globalInscricoes);
         }
 
+        function normalizarNome(valor) {
+            return String(valor == null ? '' : valor)
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLocaleLowerCase('pt-BR')
+                .replace(/\s+/g, '');
+        }
+
         function renderizarPainel(lista) {
             const tbodyPendentes = document.querySelector('#table-pendentes tbody');
             const tbodyPagos = document.querySelector('#table-pagos tbody');
@@ -348,19 +376,35 @@
             tbodyPagos.innerHTML = '';
             tbodyCamisas.innerHTML = '';
 
-            const inscricoes = lista.filter(item => item.camisa !== 'somente');
-            const comprasCamisa = lista.filter(item => item.camisa === 'somente');
+            const termoInscricoes = normalizarNome(document.getElementById('search-inscricoes').value);
+            const termoCamisas = normalizarNome(document.getElementById('search-camisas').value);
+
+            const todasInscricoes = lista.filter(item => item.camisa !== 'somente');
+            const todasCamisas = lista.filter(item => item.camisa === 'somente' || item.camisa === 'sim');
+
+            const inscricoes = todasInscricoes.filter(item =>
+                normalizarNome(item.name).includes(termoInscricoes)
+            );
+            const camisas = todasCamisas.filter(item =>
+                normalizarNome(item.name).includes(termoCamisas)
+            );
+
             const pendentes = inscricoes.filter(item => item.status !== 'pago');
             const pagos = inscricoes.filter(item => item.status === 'pago');
+
+            // Na visualização de camisas, primeiro ficam todas as compras não pagas,
+            // depois as pagas; dentro de cada grupo, camisa avulsa vem antes de inscrição + camisa.
             const camisasOrdenadas = [
-                ...comprasCamisa.filter(item => item.status !== 'pago'),
-                ...comprasCamisa.filter(item => item.status === 'pago')
+                ...camisas.filter(item => item.status !== 'pago' && item.camisa === 'somente'),
+                ...camisas.filter(item => item.status !== 'pago' && item.camisa === 'sim'),
+                ...camisas.filter(item => item.status === 'pago' && item.camisa === 'somente'),
+                ...camisas.filter(item => item.status === 'pago' && item.camisa === 'sim')
             ];
 
-            let totalInscritos = inscricoes.length;
-            let totalPagos = pagos.length;
-            let totalEspeciePendentes = inscricoes.filter(item => item.status === 'pendente_especie').length;
-            let arrecadacaoTotal = lista
+            const totalInscritos = todasInscricoes.length;
+            const totalPagos = todasInscricoes.filter(item => item.status === 'pago').length;
+            const totalEspeciePendentes = todasInscricoes.filter(item => item.status === 'pendente_especie').length;
+            const arrecadacaoTotal = lista
                 .filter(item => item.status === 'pago')
                 .reduce((total, item) => total + (Number(item.total) || (item.camisa === 'somente' ? 5500 : item.camisa === 'sim' ? 8000 : 3000)), 0);
 
@@ -380,7 +424,7 @@
                 return '<span class="badge badge-pendente">Aguardando ⏳</span>';
             }
 
-            const htmlPendentes = pendentes.map(item => {
+            function linhaInscricao(item) {
                 const camisaTexto = item.camisa === 'sim'
                     ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})`
                     : 'Não';
@@ -392,33 +436,23 @@
                     <td>${formatarValor(item)}</td>
                     <td>${statusOuAcao(item)}</td>
                 </tr>`;
-            }).join('');
+            }
 
-            const htmlPagos = pagos.map(item => {
-                const camisaTexto = item.camisa === 'sim'
-                    ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})`
-                    : 'Não';
-                return `<tr>
-                    <td><strong>${item.name}</strong></td>
-                    <td>${item.tell}</td>
-                    <td>${camisaTexto}</td>
-                    <td><code>${item.ingresso || '—'}</code></td>
-                    <td>${formatarValor(item)}</td>
-                    <td>${statusOuAcao(item)}</td>
-                </tr>`;
-            }).join('');
+            const htmlPendentes = pendentes.map(linhaInscricao).join('');
+            const htmlPagos = pagos.map(linhaInscricao).join('');
 
             const htmlCamisas = camisasOrdenadas.map(item => `<tr>
                 <td><strong>${item.name}</strong></td>
                 <td>${item.tell}</td>
+                <td>${item.camisa === 'somente' ? 'Somente a camisa' : 'Inscrição + camisa'}</td>
                 <td>${item.tamanho_camisa || 'Não informado'}</td>
                 <td>${formatarValor(item)}</td>
                 <td>${statusOuAcao(item)}</td>
             </tr>`).join('');
 
-            tbodyPendentes.innerHTML = htmlPendentes || '<tr><td colspan="6" class="loading">Nenhum pagamento pendente de inscrição.</td></tr>';
+            tbodyPendentes.innerHTML = htmlPendentes || '<tr><td colspan="6" class="loading">Nenhum pagamento pendente de inscrição encontrado.</td></tr>';
             tbodyPagos.innerHTML = htmlPagos || '<tr><td colspan="6" class="loading">Nenhuma inscrição paga encontrada.</td></tr>';
-            tbodyCamisas.innerHTML = htmlCamisas || '<tr><td colspan="5" class="loading">Nenhuma compra somente de camisa encontrada.</td></tr>';
+            tbodyCamisas.innerHTML = htmlCamisas || '<tr><td colspan="6" class="loading">Nenhuma camisa encontrada para essa pesquisa.</td></tr>';
 
             document.getElementById('stat-total').textContent = totalInscritos;
             document.getElementById('stat-pagos').textContent = totalPagos;
@@ -497,6 +531,9 @@
                 document.getElementById('switch-camisas').setAttribute('aria-selected', String(!mostrarInscricoes));
             });
         });
+
+        document.getElementById('search-inscricoes').addEventListener('input', () => renderizarPainel(globalInscricoes));
+        document.getElementById('search-camisas').addEventListener('input', () => renderizarPainel(globalInscricoes));
 
         // Carrega os dados ao abrir a página
         carregarDados();
