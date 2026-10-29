@@ -6,8 +6,10 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 document.addEventListener('DOMContentLoaded', () => {
     const cardSim = document.getElementById('card-sim');
     const cardNao = document.getElementById('card-nao');
+    const cardSomente = document.getElementById('card-somente');
     const radioSim = document.getElementById('camisa-sim');
     const radioNao = document.getElementById('camisa-nao');
+    const radioSomente = document.getElementById('camisa-somente');
     const shirtSizeContainer = document.getElementById('shirt-size-container');
     const tamanhoCamisaSelect = document.getElementById('tamanho-camisa');
     const viewShirtBtn = document.getElementById('view-shirt-btn');
@@ -36,25 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Alternar seleção de camisa visualmente
     function updateShirtSelection(choice) {
-        if (choice === 'sim') {
-            cardSim.classList.add('selected');
-            cardNao.classList.remove('selected');
-            radioSim.checked = true;
-            if (shirtSizeContainer) shirtSizeContainer.style.display = 'block';
-        } else {
-            cardNao.classList.add('selected');
-            cardSim.classList.remove('selected');
-            radioNao.checked = true;
-            if (shirtSizeContainer) shirtSizeContainer.style.display = 'none';
-            if (tamanhoCamisaSelect) tamanhoCamisaSelect.value = '';
-        }
+        cardSim.classList.toggle('selected', choice === 'sim');
+        cardNao.classList.toggle('selected', choice === 'não');
+        cardSomente.classList.toggle('selected', choice === 'somente');
+
+        radioSim.checked = choice === 'sim';
+        radioNao.checked = choice === 'não';
+        radioSomente.checked = choice === 'somente';
+
+        const precisaCamisa = choice === 'sim' || choice === 'somente';
+        if (shirtSizeContainer) shirtSizeContainer.style.display = precisaCamisa ? 'block' : 'none';
+        if (!precisaCamisa && tamanhoCamisaSelect) tamanhoCamisaSelect.value = '';
     }
 
     cardSim.addEventListener('click', () => updateShirtSelection('sim'));
     cardNao.addEventListener('click', () => updateShirtSelection('não'));
+    cardSomente.addEventListener('click', () => updateShirtSelection('somente'));
 
-    radioSim.addEventListener('change', () => { if(radioSim.checked) updateShirtSelection('sim'); });
-    radioNao.addEventListener('change', () => { if(radioNao.checked) updateShirtSelection('não'); });
+    radioSim.addEventListener('change', () => { if (radioSim.checked) updateShirtSelection('sim'); });
+    radioNao.addEventListener('change', () => { if (radioNao.checked) updateShirtSelection('não'); });
+    radioSomente.addEventListener('change', () => { if (radioSomente.checked) updateShirtSelection('somente'); });
 
     // Modal da Camisa
     viewShirtBtn.addEventListener('click', (e) => {
@@ -86,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
         const camisa = document.querySelector('input[name="camisa"]:checked').value;
-        const tamanhoCamisa = camisa === 'sim' ? tamanhoCamisaSelect.value : null;
+        const tamanhoCamisa = (camisa === 'sim' || camisa === 'somente') ? tamanhoCamisaSelect.value : null;
 
         if (!name || !tell) {
             document.getElementById('loading-overlay').style.display = 'none';
@@ -94,16 +97,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (camisa === 'sim' && !tamanhoCamisa) {
+        if ((camisa === 'sim' || camisa === 'somente') && !tamanhoCamisa) {
             document.getElementById('loading-overlay').style.display = 'none';
             alert('Por favor, selecione o tamanho da camisa.');
             return;
         }
 
-        const ingressoCode = generateIngressoCode();
+        const ingressoCode = camisa === 'somente' ? null : generateIngressoCode();
         const telefoneNumero = parseFloat(tell.replace(/\D/g, ''));
-        const valorTotal = camisa === 'sim' ? 8000 : 3000; // Valor em centavos
-        const descricaoItem = camisa === 'sim' ? `Inscrição Conferência Shine 2026 + Camisa (${tamanhoCamisa})` : 'Inscrição Conferência Shine 2026';
+        const valorTotal = camisa === 'somente' ? 5500 : (camisa === 'sim' ? 8000 : 3000); // Valor em centavos
+        const descricaoItem = camisa === 'somente' ? `Camisa Oficial Shine 2026 (${tamanhoCamisa})` : (camisa === 'sim' ? `Inscrição Conferência Shine 2026 + Camisa (${tamanhoCamisa})` : 'Inscrição Conferência Shine 2026');
 
         // Passo 1: Salva o pedido inicial como pendente no Supabase para obter o ID
         const { data, error } = await supabaseClient
@@ -200,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const name = document.getElementById('name').value.trim();
         const tell = document.getElementById('tell').value.trim();
         const camisa = document.querySelector('input[name="camisa"]:checked').value;
-        const tamanhoCamisa = camisa === 'sim' ? tamanhoCamisaSelect.value : null;
+        const tamanhoCamisa = (camisa === 'sim' || camisa === 'somente') ? tamanhoCamisaSelect.value : null;
 
         if (!name || !tell) {
             document.getElementById('loading-overlay').style.display = 'none';
@@ -208,15 +211,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (camisa === 'sim' && !tamanhoCamisa) {
+        if ((camisa === 'sim' || camisa === 'somente') && !tamanhoCamisa) {
             document.getElementById('loading-overlay').style.display = 'none';
             alert('Por favor, selecione o tamanho da camisa.');
             return;
         }
 
-        const ingressoCode = generateIngressoCode();
-        const valor = camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00';
-        const valorTotal = camisa === 'sim' ? 8000 : 3000;
+        const ingressoCode = camisa === 'somente' ? null : generateIngressoCode();
+        const valor = camisa === 'somente' ? 'R$ 55,00' : (camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00');
+        const valorTotal = camisa === 'somente' ? 5500 : (camisa === 'sim' ? 8000 : 3000);
 
         const { error } = await supabaseClient
             .from('ingressos')
@@ -237,11 +240,19 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        especieMsg.innerHTML = `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
-            <strong>Valor a pagar:</strong> ${valor}<br>
-            ${camisa === 'sim' ? `<strong>Tamanho da Camisa:</strong> ${tamanhoCamisa}<br>` : ''}
-            <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
-            Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
+        const successTitle = document.getElementById('especie-success-title');
+        especieBtnClose.textContent = camisa === 'somente' ? 'OK, Consultar Compra' : 'OK, Ver Meu Ingresso';
+        if (successTitle) successTitle.textContent = camisa === 'somente' ? 'Compra registrada!' : 'Inscrição Realizada!';
+        especieMsg.innerHTML = camisa === 'somente'
+            ? `Compra da camisa registrada para pagamento em espécie!<br><br>
+                <strong>Valor a pagar:</strong> ${valor}<br>
+                <strong>Tamanho da camisa:</strong> ${tamanhoCamisa}<br><br>
+                Procure a liderança para efetuar o pagamento. O cupom fiscal ficará disponível após a confirmação.`
+            : `Inscrição registrada com sucesso para pagamento em espécie!<br><br>
+                <strong>Valor a pagar:</strong> ${valor}<br>
+                ${camisa === 'sim' ? `<strong>Tamanho da Camisa:</strong> ${tamanhoCamisa}<br>` : ''}
+                <strong>Código do Ingresso:</strong> ${ingressoCode}<br><br>
+                Procure a liderança para efetuar o pagamento e liberar o ingresso.`;
 
         localStorage.setItem('shine_temp_ingresso', JSON.stringify({ name, tell, ingresso: ingressoCode, camisa, tamanho_camisa: tamanhoCamisa, status: 'pendente_especie' }));
 
@@ -250,7 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (especieModal && typeof especieModal.showModal === 'function') {
             especieModal.showModal();
         } else {
-            alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
+            if (camisa === 'somente') {
+                alert(`Compra da camisa registrada para pagamento em espécie!\n\nValor a pagar: ${valor}\nTamanho: ${tamanhoCamisa}\n\nProcure a liderança para efetuar o pagamento.`);
+            } else {
+                alert(`Inscrição registrada com sucesso para pagamento em espécie!\n\nValor a pagar: ${valor}\nCódigo do Ingresso: ${ingressoCode}\n\nProcure a liderança para efetuar o pagamento e liberar o ingresso.`);
+            }
             window.location.href = 'meu-ingresso.html';
         }
 

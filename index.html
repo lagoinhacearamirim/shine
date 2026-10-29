@@ -55,20 +55,28 @@
                 <input type="tel" id="tell" name="tell" placeholder="Telefone (WhatsApp)" required autocomplete="tel">
             </div>
 
-            <!-- Seleção de Camisa -->
+            <!-- Seleção de Inscrição e Camisa -->
             <div class="shirt-selection-container">
-                <label class="shirt-card" id="card-sim">
-                    <input type="radio" name="camisa" value="sim" id="camisa-sim">
+                <label class="shirt-card selected" id="card-nao">
+                    <input type="radio" name="camisa" value="não" id="camisa-nao" checked>
                     <div class="card-content">
-                        <span class="card-text">Inscrição com Camisa (R$80)</span>
+                        <span class="card-text">Inscrição (R$30)</span>
                         <div class="radio-indicator"></div>
                     </div>
                 </label>
 
-                <label class="shirt-card selected" id="card-nao">
-                    <input type="radio" name="camisa" value="não" id="camisa-nao" checked>
+                <label class="shirt-card" id="card-sim">
+                    <input type="radio" name="camisa" value="sim" id="camisa-sim">
                     <div class="card-content">
-                        <span class="card-text">Somente inscrição (R$30)</span>
+                        <span class="card-text">Inscrição com camisa (R$80)</span>
+                        <div class="radio-indicator"></div>
+                    </div>
+                </label>
+
+                <label class="shirt-card" id="card-somente">
+                    <input type="radio" name="camisa" value="somente" id="camisa-somente">
+                    <div class="card-content">
+                        <span class="card-text">Somente a camisa (R$55)</span>
                         <div class="radio-indicator"></div>
                     </div>
                 </label>
@@ -97,7 +105,7 @@
             </div>
 
             <div class="existing-ticket-link">
-                <a href="meu-ingresso.html">Já tenho um ingresso / Consultar status</a>
+                <a href="meu-ingresso.html">Ver meu ingresso / Comprei só a camisa</a>
             </div>
         </form>
     </main>
@@ -130,7 +138,7 @@
     </dialog>
     
     <dialog id="especie-success-modal" style="border: none; border-radius: 20px; padding: 2rem; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(74, 46, 93, 0.2); background: #ffffff; text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;">
-    <h3 style="font-family: 'Playfair Display', serif; color: #4a2e5d; margin-top: 0; font-size: 1.5rem;">Inscrição Realizada!</h3>
+    <h3 id="especie-success-title" style="font-family: 'Playfair Display', serif; color: #4a2e5d; margin-top: 0; font-size: 1.5rem;">Inscrição Realizada!</h3>
     <p id="especie-success-msg" style="color: #444; font-size: 0.95rem; line-height: 1.6; margin: 1.5rem 0;"></p>
     <button id="especie-btn-close" style="background-color: #4a2e5d; color: #ffffff; border: none; padding: 0.8rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%;">OK, Ver Meu Ingresso</button>
 </dialog>
