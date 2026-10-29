@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const esc=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
  const money=v=>(Number(v||0)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
  function normalizarTelefone(valor){
-  let digits=String(valor==null?'':valor).replace(/\\D/g,'');
+  let digits=String(valor==null?'':valor).replace(/\D/g,'');
   if(digits.startsWith('5584'))digits=digits.slice(4);
   else if(digits.startsWith('84'))digits=digits.slice(2);
   return digits.replace(/^0+/,'');
