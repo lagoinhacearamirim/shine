@@ -176,6 +176,36 @@
             color: #666;
             font-style: italic;
         }
+
+        .view-switchers {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .view-switcher {
+            flex: 1;
+            min-width: 180px;
+            border: 1px solid var(--lilas-suave);
+            border-radius: 12px;
+            padding: 0.9rem 1rem;
+            background: var(--branco);
+            color: var(--lilas-profundo);
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .view-switcher.active {
+            background: var(--lilas-profundo);
+            color: var(--branco);
+            border-color: var(--lilas-profundo);
+        }
+
+        .view-panel[hidden] {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -209,49 +239,76 @@
             <button id="btn-export-pdf" class="btn">Baixar Relatório para Portaria (PDF)</button>
         </div>
 
-        <!-- Tabela 1: Pagamentos Online -->
-        <section class="section-box">
-            <h2 class="section-title">Inscrições Online (Cartão / Pix)</h2>
-            <div class="table-responsive">
-                <table id="table-online">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Telefone</th>
-                            <th>Camisa</th>
-                            <th>Código</th>
-                            <th>Valor</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div class="view-switchers" role="tablist" aria-label="Visualizações administrativas">
+            <button type="button" class="view-switcher active" id="switch-inscricoes" role="tab" aria-selected="true" aria-controls="view-inscricoes">Inscrições</button>
+            <button type="button" class="view-switcher" id="switch-camisas" role="tab" aria-selected="false" aria-controls="view-camisas">Somente camisas</button>
+        </div>
 
-        <!-- Tabela 2: Pagamentos em Espécie -->
-        <section class="section-box">
-            <h2 class="section-title">Pagamentos em Espécie (Presencial)</h2>
-            <div class="table-responsive">
-                <table id="table-especie">
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Telefone</th>
-                            <th>Camisa</th>
-                            <th>Código</th>
-                            <th>Valor</th>
-                            <th>Marcar como Pago</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+        <div id="view-inscricoes" class="view-panel">
+            <section class="section-box">
+                <h2 class="section-title">Pagamentos Pendentes</h2>
+                <div class="table-responsive">
+                    <table id="table-pendentes">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Camisa</th>
+                                <th>Código</th>
+                                <th>Valor</th>
+                                <th>Status / ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <h2 class="section-title">Pagamentos Realizados</h2>
+                <div class="table-responsive">
+                    <table id="table-pagos">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Camisa</th>
+                                <th>Código</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div id="view-camisas" class="view-panel" hidden>
+            <section class="section-box">
+                <h2 class="section-title">Compras Somente de Camisa</h2>
+                <div class="table-responsive">
+                    <table id="table-camisas">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Telefone</th>
+                                <th>Tamanho</th>
+                                <th>Valor</th>
+                                <th>Status / ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="loading">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
     </main>
 
     <!-- Scripts Supabase e jsPDF com AutoTable -->
@@ -283,74 +340,86 @@
         }
 
         function renderizarPainel(lista) {
-            const tbodyOnline = document.querySelector('#table-online tbody');
-            const tbodyEspecie = document.querySelector('#table-especie tbody');
+            const tbodyPendentes = document.querySelector('#table-pendentes tbody');
+            const tbodyPagos = document.querySelector('#table-pagos tbody');
+            const tbodyCamisas = document.querySelector('#table-camisas tbody');
 
-            tbodyOnline.innerHTML = '';
-            tbodyEspecie.innerHTML = '';
+            tbodyPendentes.innerHTML = '';
+            tbodyPagos.innerHTML = '';
+            tbodyCamisas.innerHTML = '';
 
-            let totalInscritos = lista.length;
-            let totalPagos = 0;
-            let totalEspeciePendentes = 0;
-            let arrecadacaoTotal = 0;
+            const inscricoes = lista.filter(item => item.camisa !== 'somente');
+            const comprasCamisa = lista.filter(item => item.camisa === 'somente');
+            const pendentes = inscricoes.filter(item => item.status !== 'pago');
+            const pagos = inscricoes.filter(item => item.status === 'pago');
+            const camisasOrdenadas = [
+                ...comprasCamisa.filter(item => item.status !== 'pago'),
+                ...comprasCamisa.filter(item => item.status === 'pago')
+            ];
 
-            let htmlOnline = '';
-            let htmlEspecie = '';
+            let totalInscritos = inscricoes.length;
+            let totalPagos = pagos.length;
+            let totalEspeciePendentes = inscricoes.filter(item => item.status === 'pendente_especie').length;
+            let arrecadacaoTotal = lista
+                .filter(item => item.status === 'pago')
+                .reduce((total, item) => total + (Number(item.total) || (item.camisa === 'somente' ? 5500 : item.camisa === 'sim' ? 8000 : 3000)), 0);
 
-            lista.forEach(item => {
-                // Converte o valor da coluna total (em centavos) para reais. Se não houver, calcula com base na camisa.
-                const valorNumerico = item.total ? item.total : (item.camisa === 'sim' ? 8000 : 3000);
-                const valorFormatado = `R$ ${(valorNumerico / 100).toFixed(2).replace('.', ',')}`;
-                const camisaTexto = item.camisa === 'sim' 
-                    ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})` 
-                    : 'Não';
+            function formatarValor(item) {
+                const valorNumerico = Number(item.total) || (item.camisa === 'somente' ? 5500 : item.camisa === 'sim' ? 8000 : 3000);
+                return `R$ ${(valorNumerico / 100).toFixed(2).replace('.', ',')}`;
+            }
 
+            function statusOuAcao(item) {
                 if (item.status === 'pago') {
-                    totalPagos++;
-                    arrecadacaoTotal += valorNumerico;
+                    return '<span class="badge badge-pago">Pago ✅</span>';
                 }
-
                 if (item.status === 'pendente_especie') {
-                    totalEspeciePendentes++;
+                    return `<input type="checkbox" class="checkbox-pago" data-id="${item.id}" onchange="mudarStatusParaPago('${item.id}', this.checked)">
+                        <span style="font-size:0.8rem; color:#666; margin-left:5px;">Pendente</span>`;
                 }
+                return '<span class="badge badge-pendente">Aguardando ⏳</span>';
+            }
 
-                // Separação por tipo de pagamento
-                if (item.status === 'pendente_especie') {
-                    htmlEspecie += `
-                        <tr>
-                            <td><strong>${item.name}</strong></td>
-                            <td>${item.tell}</td>
-                            <td>${camisaTexto}</td>
-                            <td><code>${item.ingresso}</code></td>
-                            <td>${valorFormatado}</td>
-                            <td>
-                                <input type="checkbox" class="checkbox-pago" data-id="${item.id}" onchange="mudarStatusParaPago('${item.id}', this.checked)">
-                                <span style="font-size:0.8rem; color:#666; margin-left: 5px;">Pendente</span>
-                            </td>
-                        </tr>
-                    `;
-                } else {
-                    let badgeStatus = item.status === 'pago' 
-                        ? '<span class="badge badge-pago">Pago ✅</span>' 
-                        : '<span class="badge badge-pendente">Aguardando ⏳</span>';
+            const htmlPendentes = pendentes.map(item => {
+                const camisaTexto = item.camisa === 'sim'
+                    ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})`
+                    : 'Não';
+                return `<tr>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.tell}</td>
+                    <td>${camisaTexto}</td>
+                    <td><code>${item.ingresso || '—'}</code></td>
+                    <td>${formatarValor(item)}</td>
+                    <td>${statusOuAcao(item)}</td>
+                </tr>`;
+            }).join('');
 
-                    htmlOnline += `
-                        <tr>
-                            <td><strong>${item.name}</strong></td>
-                            <td>${item.tell}</td>
-                            <td>${camisaTexto}</td>
-                            <td><code>${item.ingresso}</code></td>
-                            <td>${valorFormatado}</td>
-                            <td>${badgeStatus}</td>
-                        </tr>
-                    `;
-                }
-            });
+            const htmlPagos = pagos.map(item => {
+                const camisaTexto = item.camisa === 'sim'
+                    ? `Sim (${item.tamanho_camisa || 'Sem Tam.'})`
+                    : 'Não';
+                return `<tr>
+                    <td><strong>${item.name}</strong></td>
+                    <td>${item.tell}</td>
+                    <td>${camisaTexto}</td>
+                    <td><code>${item.ingresso || '—'}</code></td>
+                    <td>${formatarValor(item)}</td>
+                    <td>${statusOuAcao(item)}</td>
+                </tr>`;
+            }).join('');
 
-            tbodyOnline.innerHTML = htmlOnline || '<tr><td colspan="6" class="loading">Nenhuma inscrição online encontrada.</td></tr>';
-            tbodyEspecie.innerHTML = htmlEspecie || '<tr><td colspan="6" class="loading">Nenhum pagamento em espécie pendente.</td></tr>';
+            const htmlCamisas = camisasOrdenadas.map(item => `<tr>
+                <td><strong>${item.name}</strong></td>
+                <td>${item.tell}</td>
+                <td>${item.tamanho_camisa || 'Não informado'}</td>
+                <td>${formatarValor(item)}</td>
+                <td>${statusOuAcao(item)}</td>
+            </tr>`).join('');
 
-            // Atualiza os Cards de Estatísticas
+            tbodyPendentes.innerHTML = htmlPendentes || '<tr><td colspan="6" class="loading">Nenhum pagamento pendente de inscrição.</td></tr>';
+            tbodyPagos.innerHTML = htmlPagos || '<tr><td colspan="6" class="loading">Nenhuma inscrição paga encontrada.</td></tr>';
+            tbodyCamisas.innerHTML = htmlCamisas || '<tr><td colspan="5" class="loading">Nenhuma compra somente de camisa encontrada.</td></tr>';
+
             document.getElementById('stat-total').textContent = totalInscritos;
             document.getElementById('stat-pagos').textContent = totalPagos;
             document.getElementById('stat-especie').textContent = totalEspeciePendentes;
@@ -360,7 +429,11 @@
         async function mudarStatusParaPago(id, marcado) {
             if (!marcado) return;
 
-            if (confirm("Deseja confirmar o recebimento em espécie e liberar o ingresso deste participante?")) {
+            const registro = globalInscricoes.find(item => String(item.id) === String(id));
+            const confirmacao = registro && registro.camisa === 'somente'
+                ? "Deseja confirmar o recebimento em espécie e marcar a compra da camisa como paga?"
+                : "Deseja confirmar o recebimento em espécie e liberar o ingresso deste participante?";
+            if (confirm(confirmacao)) {
                 const { error } = await supabaseClient
                     .from('ingressos')
                     .update({ status: 'pago' })
@@ -391,13 +464,15 @@
             doc.setTextColor(100, 100, 100);
             doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 105, 22, { align: "center" });
 
-            const tableData = globalInscricoes.map(item => [
-                item.name,
-                item.tell,
-                item.camisa === 'sim' ? `SIM (${item.tamanho_camisa || '-'})` : 'NÃO',
-                item.ingresso,
-                item.status === 'pago' ? 'PAGO' : 'PENDENTE'
-            ]);
+            const tableData = globalInscricoes
+                .filter(item => item.camisa !== 'somente')
+                .map(item => [
+                    item.name,
+                    item.tell,
+                    item.camisa === 'sim' ? `SIM (${item.tamanho_camisa || '-'})` : 'NÃO',
+                    item.ingresso || '—',
+                    item.status === 'pago' ? 'PAGO' : 'PENDENTE'
+                ]);
 
             doc.autoTable({
                 startY: 30,
@@ -409,6 +484,18 @@
             });
 
             doc.save(`Relatorio-Portaria-Shine2026.pdf`);
+        });
+
+        document.querySelectorAll('.view-switcher').forEach(button => {
+            button.addEventListener('click', () => {
+                const mostrarInscricoes = button.id === 'switch-inscricoes';
+                document.getElementById('view-inscricoes').hidden = !mostrarInscricoes;
+                document.getElementById('view-camisas').hidden = mostrarInscricoes;
+                document.getElementById('switch-inscricoes').classList.toggle('active', mostrarInscricoes);
+                document.getElementById('switch-camisas').classList.toggle('active', !mostrarInscricoes);
+                document.getElementById('switch-inscricoes').setAttribute('aria-selected', String(mostrarInscricoes));
+                document.getElementById('switch-camisas').setAttribute('aria-selected', String(!mostrarInscricoes));
+            });
         });
 
         // Carrega os dados ao abrir a página
