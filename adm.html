@@ -223,6 +223,39 @@
             outline: 2px solid var(--lilas-suave);
             outline-offset: 1px;
         }
+
+        .btn-delete {
+            background: #fff1f1;
+            color: #a32323;
+            border: 1px solid #efb8b8;
+            border-radius: 8px;
+            padding: 0.45rem 0.7rem;
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-delete:hover { background: #ffe1e1; }
+        .delete-modal {
+            position: fixed; inset: 0; z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            padding: 1rem; background: rgba(25, 15, 32, 0.65);
+        }
+        .delete-modal[hidden] { display: none; }
+        .delete-dialog {
+            width: min(100%, 560px); max-height: 85vh; overflow-y: auto;
+            background: #fff; border-radius: 18px; padding: 1.5rem;
+            box-shadow: 0 18px 60px rgba(0,0,0,.25);
+        }
+        .delete-dialog h2 { color: #4a2e5d; margin-top: 0; }
+        .delete-dialog p { line-height: 1.55; }
+        .duplicate-list { padding-left: 1.25rem; line-height: 1.6; }
+        .paid-warning { background: #fff6df; border-left: 4px solid #b7791f; padding: .8rem 1rem; border-radius: 8px; }
+        .delete-actions { display: flex; flex-wrap: wrap; gap: .7rem; justify-content: flex-end; margin-top: 1.4rem; }
+        .btn-review { background: #eee8f3; color: #4a2e5d; border: 1px solid #d4b5f0; }
+        .btn-confirm-delete { background: #a32323; color: #fff; }
+
     </style>
 </head>
 <body>
@@ -275,10 +308,11 @@
                                 <th>Código</th>
                                 <th>Valor</th>
                                 <th>Status / ação</th>
+                                <th>Excluir</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="6" class="loading">Carregando dados...</td></tr>
+                            <tr><td colspan="7" class="loading">Carregando dados...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -296,6 +330,7 @@
                                 <th>Código</th>
                                 <th>Valor</th>
                                 <th>Status</th>
+                                <th>Excluir</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -320,6 +355,7 @@
                                 <th>Tamanho</th>
                                 <th>Valor</th>
                                 <th>Status / ação</th>
+                                <th>Excluir</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -330,6 +366,21 @@
             </section>
         </div>
     </main>
+
+
+    <div id="delete-modal" class="delete-modal" hidden>
+        <section class="delete-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-title">
+            <h2 id="delete-title">Confirmar exclusão</h2>
+            <p id="delete-question"></p>
+            <strong>Foram encontradas as seguintes inscrições parecidas:</strong>
+            <ul id="delete-duplicates" class="duplicate-list"></ul>
+            <p id="delete-paid-warning" class="paid-warning" hidden></p>
+            <div class="delete-actions">
+                <button type="button" id="btn-review-delete" class="btn btn-review">Vou conferir melhor</button>
+                <button type="button" id="btn-confirm-delete" class="btn btn-confirm-delete">Excluir mesmo assim</button>
+            </div>
+        </section>
+    </div>
 
     <!-- Scripts Supabase e jsPDF com AutoTable -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -366,6 +417,114 @@
                 .toLocaleLowerCase('pt-BR')
                 .replace(/\s+/g, '');
         }
+
+
+        function normalizarTelefone(valor) {
+            let numero = String(valor == null ? '' : valor).replace(/\\D/g, '');
+            if (numero.startsWith('5584')) numero = numero.slice(4);
+            return numero;
+        }
+
+        function distanciaEdicao(a, b) {
+            const matriz = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+            for (let j = 0; j <= a.length; j++) matriz[0][j] = j;
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    matriz[i][j] = Math.min(
+                        matriz[i - 1][j] + 1,
+                        matriz[i][j - 1] + 1,
+                        matriz[i - 1][j - 1] + (b[i - 1] === a[j - 1] ? 0 : 1)
+                    );
+                }
+            }
+            return matriz[b.length][a.length];
+        }
+
+        function nomesParecidos(nomeA, nomeB) {
+            const a = normalizarNome(nomeA);
+            const b = normalizarNome(nomeB);
+            if (!a || !b) return false;
+            if (a === b || a.includes(b) || b.includes(a)) return true;
+            const limite = Math.max(1, Math.floor(Math.max(a.length, b.length) * 0.22));
+            return distanciaEdicao(a, b) <= limite;
+        }
+
+        function duplicatasDoRegistro(registro) {
+            const telefone = normalizarTelefone(registro.tell);
+            return globalInscricoes.filter(outro => {
+                if (String(outro.id) === String(registro.id)) return false;
+                const telefoneOutro = normalizarTelefone(outro.tell);
+                const telefoneParecido = telefone && telefoneOutro &&
+                    (telefone === telefoneOutro || telefone.endsWith(telefoneOutro) || telefoneOutro.endsWith(telefone));
+                return telefoneParecido || nomesParecidos(registro.name, outro.name);
+            });
+        }
+
+        let registroAExcluir = null;
+
+        function abrirConfirmacaoExclusao(id) {
+            const registro = globalInscricoes.find(item => String(item.id) === String(id));
+            if (!registro) return;
+            registroAExcluir = registro;
+            const tipo = registro.camisa === 'somente' ? 'compra' : 'inscrição';
+            document.getElementById('delete-question').textContent =
+                `Tem certeza que deseja deletar esta ${tipo} de ${registro.name}?`;
+            const duplicatas = duplicatasDoRegistro(registro);
+            const lista = document.getElementById('delete-duplicates');
+            lista.replaceChildren();
+            if (!duplicatas.length) {
+                const li = document.createElement('li');
+                li.textContent = 'Não foram encontradas duplicatas.';
+                lista.appendChild(li);
+            } else {
+                duplicatas.forEach(item => {
+                    const li = document.createElement('li');
+                    const tipoItem = item.camisa === 'somente' ? 'Compra de camisa' : 'Inscrição';
+                    li.textContent = `${item.name} — telefone ${item.tell} — ${tipoItem} — status: ${item.status === 'pago' ? 'PAGO' : 'PENDENTE'}`;
+                    lista.appendChild(li);
+                });
+            }
+            const avisoPago = document.getElementById('delete-paid-warning');
+            avisoPago.hidden = registro.status !== 'pago';
+            avisoPago.textContent = registro.status === 'pago'
+                ? `Este registro mostra que ${registro.name} já realizou o pagamento. Talvez seja melhor excluir uma duplicata onde o pagamento não foi realizado.`
+                : '';
+            document.getElementById('delete-modal').hidden = false;
+        }
+
+        async function confirmarExclusao() {
+            if (!registroAExcluir) return;
+            const id = registroAExcluir.id;
+            const botao = document.getElementById('btn-confirm-delete');
+            botao.disabled = true;
+            botao.textContent = 'Excluindo...';
+            const { error } = await supabaseClient
+                .from('ingressos')
+                .delete()
+                .eq('id', id);
+            botao.disabled = false;
+            botao.textContent = 'Excluir mesmo assim';
+            if (error) {
+                console.error('Erro ao excluir registro:', error);
+                alert('Não foi possível excluir este registro. Verifique as permissões de exclusão no Supabase.');
+                return;
+            }
+            document.getElementById('delete-modal').hidden = true;
+            registroAExcluir = null;
+            await carregarDados();
+        }
+
+        document.getElementById('btn-review-delete').addEventListener('click', () => {
+            document.getElementById('delete-modal').hidden = true;
+            registroAExcluir = null;
+        });
+        document.getElementById('btn-confirm-delete').addEventListener('click', confirmarExclusao);
+        document.getElementById('delete-modal').addEventListener('click', event => {
+            if (event.target.id === 'delete-modal') {
+                event.currentTarget.hidden = true;
+                registroAExcluir = null;
+            }
+        });
 
         function renderizarPainel(lista) {
             const tbodyPendentes = document.querySelector('#table-pendentes tbody');
@@ -435,6 +594,7 @@
                     <td><code>${item.ingresso || '—'}</code></td>
                     <td>${formatarValor(item)}</td>
                     <td>${statusOuAcao(item)}</td>
+                    <td><button type="button" class="btn-delete" onclick="abrirConfirmacaoExclusao('${item.id}')">Excluir</button></td>
                 </tr>`;
             }
 
@@ -448,11 +608,12 @@
                 <td>${item.tamanho_camisa || 'Não informado'}</td>
                 <td>${formatarValor(item)}</td>
                 <td>${statusOuAcao(item)}</td>
+                <td><button type="button" class="btn-delete" onclick="abrirConfirmacaoExclusao('${item.id}')">Excluir</button></td>
             </tr>`).join('');
 
-            tbodyPendentes.innerHTML = htmlPendentes || '<tr><td colspan="6" class="loading">Nenhum pagamento pendente de inscrição encontrado.</td></tr>';
-            tbodyPagos.innerHTML = htmlPagos || '<tr><td colspan="6" class="loading">Nenhuma inscrição paga encontrada.</td></tr>';
-            tbodyCamisas.innerHTML = htmlCamisas || '<tr><td colspan="6" class="loading">Nenhuma camisa encontrada para essa pesquisa.</td></tr>';
+            tbodyPendentes.innerHTML = htmlPendentes || '<tr><td colspan="7" class="loading">Nenhum pagamento pendente de inscrição encontrado.</td></tr>';
+            tbodyPagos.innerHTML = htmlPagos || '<tr><td colspan="7" class="loading">Nenhuma inscrição paga encontrada.</td></tr>';
+            tbodyCamisas.innerHTML = htmlCamisas || '<tr><td colspan="7" class="loading">Nenhuma camisa encontrada para essa pesquisa.</td></tr>';
 
             document.getElementById('stat-total').textContent = totalInscritos;
             document.getElementById('stat-pagos').textContent = totalPagos;
