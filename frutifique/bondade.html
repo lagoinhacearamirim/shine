@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#8061D9">
+    <title>Bondade — Frutifique | Conferência Laços 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #241a30; }
+        .artwork {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            display: block; object-fit: cover; object-position: center;
+        }
+        .bottom-cta {
+            position: fixed; z-index: 2; left: 0; right: 0; bottom: 0;
+            padding: 2.5rem 1rem max(1.25rem, env(safe-area-inset-bottom));
+            display: flex; flex-direction: column; align-items: center; gap: .85rem;
+            background: linear-gradient(to bottom, transparent 0%, rgba(25, 17, 35, .48) 28%, rgba(25, 17, 35, .82) 100%);
+        }
+        .invitation {
+            display: flex; align-items: center; justify-content: center; gap: .65rem;
+            color: #fff; text-align: center;
+            font-family: 'Playfair Display', serif; font-size: clamp(1.05rem, 4vw, 1.4rem);
+            font-weight: 700; line-height: 1.25;
+            text-shadow: 0 2px 12px rgba(0,0,0,.55);
+        }
+        .invitation img { width: 38px; height: 38px; object-fit: contain; flex: 0 0 auto; }
+        .signup-button {
+            width: min(100%, 340px); min-height: 54px; padding: .9rem 1.5rem;
+            display: flex; justify-content: center; align-items: center;
+            border: 2px solid #fff; border-radius: 999px;
+            background: linear-gradient(135deg, #E8C0FC, #FF99C8, #A8DEFA);
+            color: #8061D9; text-decoration: none; text-align: center;
+            font-family: 'Playfair Display', serif; font-size: 1.05rem;
+            font-weight: 700; letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(20, 10, 35, .3);
+            transition: transform .2s ease, filter .2s ease;
+        }
+        .signup-button:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .signup-button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+        @media (min-aspect-ratio: 4/5) {
+            .artwork { object-position: center; }
+        }
+    </style>
+</head>
+<body>
+    <img class="artwork" src="img/bondade.jpeg" alt="bondade" fetchpriority="high">
+    <footer class="bottom-cta">
+        <div class="invitation">
+            <img src="../shineLogo.png" alt="" aria-hidden="true">
+            <span>Quero frutifique na conferência laços</span>
+        </div>
+        <a class="signup-button" href="../index.html">Inscrever-se</a>
+    </footer>
+</body>
+</html>
