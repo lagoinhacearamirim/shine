@@ -237,6 +237,8 @@
             white-space: nowrap;
         }
         .btn-delete:hover { background: #ffe1e1; }
+        .btn-mark-paid { background:#e2f8ed; color:#0d8a4f; border:1px solid #9bd9b7; border-radius:8px; padding:.45rem .7rem; font:inherit; font-size:.78rem; font-weight:700; cursor:pointer; white-space:nowrap; }
+        .btn-mark-paid:hover { background:#cff2df; }
         .delete-modal {
             position: fixed; inset: 0; z-index: 1000;
             display: flex; align-items: center; justify-content: center;
@@ -580,6 +582,10 @@
                     return `<input type="checkbox" class="checkbox-pago" data-id="${item.id}" onchange="mudarStatusParaPago('${item.id}', this.checked)">
                         <span style="font-size:0.8rem; color:#666; margin-left:5px;">Pendente</span>`;
                 }
+                if (item.status === 'pendente' && item.order_nsu && String(item.order_nsu).trim()) {
+                    return '<span class="badge badge-pendente">Online pendente</span><br>' +
+                        '<button type="button" class="btn-mark-paid" style="margin-top:.45rem" onclick="marcarPagamentoOnline(\'' + item.id + '\')">Marcar como pago</button>';
+                }
                 return '<span class="badge badge-pendente">Aguardando ⏳</span>';
             }
 
@@ -643,6 +649,28 @@
             } else {
                 carregarDados(); // Reverte a marcação visual se cancelar
             }
+        }
+
+        async function marcarPagamentoOnline(id) {
+            const registro = globalInscricoes.find(item => String(item.id) === String(id));
+            if (!registro || registro.status !== 'pendente' || !registro.order_nsu || !String(registro.order_nsu).trim()) {
+                alert('Este registro não é um pagamento online pendente válido.');
+                return;
+            }
+            const tipo = registro.camisa === 'somente' ? 'compra da camisa' : 'inscrição';
+            const valor = Number(registro.total) || (registro.camisa === 'somente' ? 5500 : registro.camisa === 'sim' ? 8000 : 3000);
+            const mensagem = 'Confirma que o pagamento online de ' + registro.name + ' foi recebido?\n\n' +
+                'Registro: ' + tipo + '\nValor: R$ ' + (valor / 100).toFixed(2).replace('.', ',') + '\n' +
+                'Pedido: ' + registro.order_nsu + '\n\n' +
+                'Essa ação marcará o registro como PAGO, mesmo sem confirmação automática da operadora.';
+            if (!confirm(mensagem)) return;
+            const { error } = await supabaseClient.from('ingressos').update({ status: 'pago' }).eq('id', id).eq('status', 'pendente');
+            if (error) {
+                console.error('Erro ao confirmar pagamento online:', error);
+                alert('Não foi possível atualizar o pagamento. Verifique as permissões de atualização no Supabase.');
+                return;
+            }
+            await carregarDados();
         }
 
         // Geração do PDF para portaria
