@@ -524,3 +524,29 @@ dialog#especie-success-modal::backdrop {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
+
+
+/* Opções de camisa esgotadas */
+.shirt-card.sold-out {
+  opacity: 0.42;
+  filter: grayscale(0.65);
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+}
+.shirt-card.sold-out:hover { transform: none; box-shadow: none; }
+.soldout-dialog {
+  border: none; border-radius: 24px; padding: 2rem; width: min(90%, 480px);
+  text-align: center; background: #fff; color: var(--texto-escuro);
+  box-shadow: 0 15px 45px rgba(74, 46, 93, 0.3);
+}
+.soldout-dialog::backdrop { background: rgba(43, 43, 43, 0.55); backdrop-filter: blur(3px); }
+.soldout-dialog p {
+  font-family: 'Playfair Display', serif; font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700; line-height: 1.4; margin-bottom: 1.5rem;
+}
+.soldout-dialog button {
+  background: linear-gradient(135deg, var(--lavanda), var(--rosa-bubblegum), var(--azul-bebe));
+  color: var(--lilas-profundo); border: 1px solid white; border-radius: 999px;
+  padding: 0.8rem 1.8rem; font: 700 1rem 'Plus Jakarta Sans', sans-serif; cursor: pointer;
+}
