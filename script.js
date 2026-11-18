@@ -36,6 +36,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Camisas esgotadas: opções desativadas e mensagem informativa
+    const soldoutDialog = document.getElementById('shirts-soldout-dialog');
+    const soldoutClose = document.getElementById('soldout-close');
+    radioSim.disabled = true;
+    radioSomente.disabled = true;
+    cardSim.classList.add('sold-out');
+    cardSomente.classList.add('sold-out');
+    function showSoldOutMessage(event) {
+        event.preventDefault();
+        if (soldoutDialog && typeof soldoutDialog.showModal === 'function') {
+            soldoutDialog.showModal();
+        } else {
+            alert('Desculpe, as camisas acabaram 😅...');
+        }
+    }
+    cardSim.addEventListener('click', showSoldOutMessage);
+    cardSomente.addEventListener('click', showSoldOutMessage);
+    if (soldoutClose && soldoutDialog) {
+        soldoutClose.addEventListener('click', () => soldoutDialog.close());
+    }
+
     // Alternar seleção de camisa visualmente
     function updateShirtSelection(choice) {
         cardSim.classList.toggle('selected', choice === 'sim');
@@ -51,13 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!precisaCamisa && tamanhoCamisaSelect) tamanhoCamisaSelect.value = '';
     }
 
-    cardSim.addEventListener('click', () => updateShirtSelection('sim'));
     cardNao.addEventListener('click', () => updateShirtSelection('não'));
-    cardSomente.addEventListener('click', () => updateShirtSelection('somente'));
-
-    radioSim.addEventListener('change', () => { if (radioSim.checked) updateShirtSelection('sim'); });
     radioNao.addEventListener('change', () => { if (radioNao.checked) updateShirtSelection('não'); });
-    radioSomente.addEventListener('change', () => { if (radioSomente.checked) updateShirtSelection('somente'); });
 
     // Modal da Camisa
     viewShirtBtn.addEventListener('click', (e) => {
