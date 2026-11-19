@@ -132,6 +132,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cardNao.addEventListener('click', () => updateShirtSelection('não'));
     radioNao.addEventListener('change', () => { if (radioNao.checked) updateShirtSelection('não'); });
+    radioSim.addEventListener('change', () => {
+        if (radioSim.checked && !shirtStockSoldOut) updateShirtSelection('sim');
+    });
+    radioSomente.addEventListener('change', () => {
+        if (radioSomente.checked && !shirtStockSoldOut) updateShirtSelection('somente');
+    });
 
     // Modal da Camisa
     viewShirtBtn.addEventListener('click', (e) => {
@@ -340,6 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        if (camisa === 'sim' || camisa === 'somente') {
+            refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
+        }
+
         const successTitle = document.getElementById('especie-success-title');
         especieBtnClose.textContent = camisa === 'somente' ? 'OK, Consultar Compra' : 'OK, Ver Meu Ingresso';
         if (successTitle) successTitle.textContent = camisa === 'somente' ? 'Compra registrada!' : 'Inscrição Realizada!';
