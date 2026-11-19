@@ -36,26 +36,84 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Camisas esgotadas: opções desativadas e mensagem informativa
+    // Controle automático do estoque: 50 registros existentes + 10 camisas restantes.
+    const SHIRT_STOCK_LIMIT = 60;
     const soldoutDialog = document.getElementById('shirts-soldout-dialog');
     const soldoutClose = document.getElementById('soldout-close');
+    let shirtStockReady = false;
+    let shirtStockSoldOut = false;
+
+    // Mantém as opções bloqueadas até consultar a contagem real no Supabase.
     radioSim.disabled = true;
     radioSomente.disabled = true;
-    cardSim.classList.add('sold-out');
-    cardSomente.classList.add('sold-out');
+
+    function setShirtStockState(soldOut) {
+        shirtStockReady = true;
+        shirtStockSoldOut = soldOut;
+        radioSim.disabled = soldOut;
+        radioSomente.disabled = soldOut;
+        cardSim.classList.toggle('sold-out', soldOut);
+        cardSomente.classList.toggle('sold-out', soldOut);
+    }
+
     function showSoldOutMessage(event) {
-        event.preventDefault();
+        if (event) event.preventDefault();
+        if (!shirtStockReady) {
+            alert('Não foi possível confirmar o estoque das camisas. Atualize a página e tente novamente.');
+            return;
+        }
         if (soldoutDialog && typeof soldoutDialog.showModal === 'function') {
             soldoutDialog.showModal();
         } else {
             alert('Desculpe, as camisas acabaram 😅...');
         }
     }
-    cardSim.addEventListener('click', showSoldOutMessage);
-    cardSomente.addEventListener('click', showSoldOutMessage);
+
+    async function refreshShirtStock() {
+        const { count, error } = await supabaseClient
+            .from('ingressos')
+            .select('id', { count: 'exact', head: true })
+            .in('camisa', ['sim', 'somente']);
+
+        if (error) throw error;
+
+        const soldOut = (count || 0) >= SHIRT_STOCK_LIMIT;
+        setShirtStockState(soldOut);
+        return { count: count || 0, soldOut };
+    }
+
+    async function ensureShirtStockAvailable(camisa) {
+        if (camisa !== 'sim' && camisa !== 'somente') return true;
+
+        try {
+            const stock = await refreshShirtStock();
+            if (stock.soldOut) {
+                showSoldOutMessage();
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Não foi possível consultar o estoque de camisas:', error);
+            alert('Não foi possível verificar a disponibilidade das camisas. Tente novamente em instantes.');
+            return false;
+        }
+    }
+
+    cardSim.addEventListener('click', (event) => {
+        if (!shirtStockReady || shirtStockSoldOut) showSoldOutMessage(event);
+    });
+    cardSomente.addEventListener('click', (event) => {
+        if (!shirtStockReady || shirtStockSoldOut) showSoldOutMessage(event);
+    });
+
     if (soldoutClose && soldoutDialog) {
         soldoutClose.addEventListener('click', () => soldoutDialog.close());
     }
+
+    // Atualiza o estado das opções assim que a página carrega.
+    refreshShirtStock().catch(error => {
+        console.error('Falha ao carregar o estoque de camisas:', error);
+    });
 
     // Alternar seleção de camisa visualmente
     function updateShirtSelection(choice) {
@@ -119,6 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const estoqueDisponivel = await ensureShirtStockAvailable(camisa);
+        if (!estoqueDisponivel) {
+            document.getElementById('loading-overlay').style.display = 'none';
+            return;
+        }
+
         const ingressoCode = camisa === 'somente' ? null : generateIngressoCode();
         const telefoneNumero = parseFloat(tell.replace(/\D/g, ''));
         const valorTotal = camisa === 'somente' ? 5500 : (camisa === 'sim' ? 8000 : 3000); // Valor em centavos
@@ -141,8 +205,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error || !data || data.length === 0) {
             document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro ao salvar no Supabase:', error);
+            if (error && String(error.message || '').includes('CAMISAS_ESGOTADAS')) {
+                setShirtStockState(true);
+                showSoldOutMessage();
+                return;
+            }
             alert('Erro ao processar inscrição. Tente novamente.');
             return;
+        }
+
+        if (camisa === 'sim' || camisa === 'somente') {
+            refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
         }
 
         // Pega o ID único gerado no banco para usar como order_nsu
@@ -233,6 +306,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const estoqueDisponivel = await ensureShirtStockAvailable(camisa);
+        if (!estoqueDisponivel) {
+            document.getElementById('loading-overlay').style.display = 'none';
+            return;
+        }
+
         const ingressoCode = camisa === 'somente' ? null : generateIngressoCode();
         const valor = camisa === 'somente' ? 'R$ 55,00' : (camisa === 'sim' ? 'R$ 80,00' : 'R$ 30,00');
         const valorTotal = camisa === 'somente' ? 5500 : (camisa === 'sim' ? 8000 : 3000);
@@ -252,6 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) {
             document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro:', error);
+            if (String(error.message || '').includes('CAMISAS_ESGOTADAS')) {
+                setShirtStockState(true);
+                showSoldOutMessage();
+                return;
+            }
             alert('Erro ao registrar inscrição.');
             return;
         }
