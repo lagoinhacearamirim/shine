@@ -89,10 +89,16 @@
                 </label>
             </div>
 
-            <!-- Dropdown do Tamanho da Camisa -->
+            <!-- Seleção de tamanho da camisa -->
             <div class="input-group" id="shirt-size-container" style="display: none;">
-                <select id="tamanho-camisa" name="tamanho_camisa" style="width: 100%; padding: 1rem 1.5rem; border-radius: 999px; border: 1.5px solid var(--lilas-suave); background: rgba(255, 255, 255, 0.85); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; color: var(--texto-escuro); outline: none;">
-                    <option value="" disabled selected>Selecione o tamanho da camisa</option>
+                <div id="shirt-size-picker" class="shirt-size-picker" role="group" aria-label="Selecione o tamanho da camisa">
+                    <button type="button" class="shirt-size-option" data-size="P">P</button>
+                    <button type="button" class="shirt-size-option" data-size="M">M</button>
+                    <button type="button" class="shirt-size-option" data-size="G">G</button>
+                    <button type="button" class="shirt-size-option" data-size="GG">GG</button>
+                </div>
+                <select id="tamanho-camisa" name="tamanho_camisa" aria-hidden="true" tabindex="-1" style="display: none;">
+                    <option value="" selected>Selecione o tamanho da camisa</option>
                     <option value="P">P</option>
                     <option value="M">M</option>
                     <option value="G">G</option>
