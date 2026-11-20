@@ -37,60 +37,101 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Controle automático do estoque: 50 registros existentes + 10 camisas restantes.
-    const SHIRT_STOCK_LIMIT = 60;
+    const SHIRT_SIZES = ['P', 'M', 'G', 'GG'];
     const soldoutDialog = document.getElementById('shirts-soldout-dialog');
     const soldoutClose = document.getElementById('soldout-close');
     let shirtStockReady = false;
     let shirtStockSoldOut = false;
+    let shirtStock = { P: 0, M: 0, G: 0, GG: 0 };
 
-    // Mantém as opções bloqueadas até consultar a contagem real no Supabase.
+    // As opções ficam temporariamente bloqueadas até a consulta segura do estoque.
     radioSim.disabled = true;
     radioSomente.disabled = true;
 
-    function setShirtStockState(soldOut) {
-        shirtStockReady = true;
-        shirtStockSoldOut = soldOut;
-        radioSim.disabled = soldOut;
-        radioSomente.disabled = soldOut;
-        cardSim.classList.toggle('sold-out', soldOut);
-        cardSomente.classList.toggle('sold-out', soldOut);
+    function updateShirtSizeOptions(stock) {
+        if (!tamanhoCamisaSelect) return;
+
+        Array.from(tamanhoCamisaSelect.options).forEach(option => {
+            const size = option.value;
+            if (!SHIRT_SIZES.includes(size)) return;
+
+            const remaining = Number(stock[size]) || 0;
+            option.textContent = remaining > 0
+                ? `${size} — ${remaining} ${remaining === 1 ? 'restante' : 'restantes'}`
+                : `${size} — Esgotado`;
+        });
     }
 
-    function showSoldOutMessage(event) {
+    function setShirtStockState(stock) {
+        shirtStock = stock;
+        shirtStockReady = true;
+
+        const totalRemaining = SHIRT_SIZES.reduce((sum, size) => sum + (Number(stock[size]) || 0), 0);
+        shirtStockSoldOut = totalRemaining <= 0;
+
+        radioSim.disabled = shirtStockSoldOut;
+        radioSomente.disabled = shirtStockSoldOut;
+        cardSim.classList.toggle('sold-out', shirtStockSoldOut);
+        cardSomente.classList.toggle('sold-out', shirtStockSoldOut);
+
+        updateShirtSizeOptions(stock);
+    }
+
+    function showSoldOutMessage(event, reason = 'all') {
         if (event) event.preventDefault();
+
+        let message;
         if (!shirtStockReady) {
-            alert('Não foi possível confirmar o estoque das camisas. Atualize a página e tente novamente.');
-            return;
+            message = 'Não foi possível confirmar o estoque das camisas. Atualize a página e tente novamente.';
+        } else if (reason === 'size') {
+            message = 'Desculpe, este tamanho esgotou 😅...';
+        } else {
+            message = 'Desculpe, as camisas acabaram 😅...';
         }
+
+        const messageElement = soldoutDialog && soldoutDialog.querySelector('p');
+        if (messageElement) messageElement.textContent = message;
+
         if (soldoutDialog && typeof soldoutDialog.showModal === 'function') {
             soldoutDialog.showModal();
         } else {
-            alert('Desculpe, as camisas acabaram 😅...');
+            alert(message);
         }
     }
 
     async function refreshShirtStock() {
-        const { count, error } = await supabaseClient
-            .from('ingressos')
-            .select('id', { count: 'exact', head: true })
-            .in('camisa', ['sim', 'somente']);
-
+        const { data, error } = await supabaseClient.rpc('get_shirt_stock');
         if (error) throw error;
 
-        const soldOut = (count || 0) >= SHIRT_STOCK_LIMIT;
-        setShirtStockState(soldOut);
-        return { count: count || 0, soldOut };
+        const stock = { P: 0, M: 0, G: 0, GG: 0 };
+        (data || []).forEach(row => {
+            const size = String(row.size || '').toUpperCase();
+            if (SHIRT_SIZES.includes(size)) {
+                stock[size] = Math.max(0, Number(row.remaining) || 0);
+            }
+        });
+
+        setShirtStockState(stock);
+        return stock;
     }
 
-    async function ensureShirtStockAvailable(camisa) {
+    async function ensureShirtStockAvailable(camisa, tamanhoCamisa) {
         if (camisa !== 'sim' && camisa !== 'somente') return true;
 
         try {
             const stock = await refreshShirtStock();
-            if (stock.soldOut) {
+            const totalRemaining = SHIRT_SIZES.reduce((sum, size) => sum + stock[size], 0);
+
+            if (totalRemaining <= 0) {
                 showSoldOutMessage();
                 return false;
             }
+
+            if (!tamanhoCamisa || (stock[tamanhoCamisa] || 0) <= 0) {
+                showSoldOutMessage(null, 'size');
+                return false;
+            }
+
             return true;
         } catch (error) {
             console.error('Não foi possível consultar o estoque de camisas:', error);
@@ -110,7 +151,27 @@ document.addEventListener('DOMContentLoaded', () => {
         soldoutClose.addEventListener('click', () => soldoutDialog.close());
     }
 
-    // Atualiza o estado das opções assim que a página carrega.
+    // Se a pessoa escolher um tamanho que acabou de esgotar, avisa imediatamente.
+    if (tamanhoCamisaSelect) {
+        tamanhoCamisaSelect.addEventListener('change', async () => {
+            const selectedSize = tamanhoCamisaSelect.value;
+            if (!selectedSize) return;
+
+            try {
+                const stock = await refreshShirtStock();
+                if ((stock[selectedSize] || 0) <= 0) {
+                    tamanhoCamisaSelect.value = '';
+                    showSoldOutMessage(null, 'size');
+                }
+            } catch (error) {
+                console.error('Falha ao verificar o tamanho selecionado:', error);
+                tamanhoCamisaSelect.value = '';
+                alert('Não foi possível verificar este tamanho agora. Tente novamente.');
+            }
+        });
+    }
+
+    // Atualiza os tamanhos e libera as modalidades que ainda possuem estoque.
     refreshShirtStock().catch(error => {
         console.error('Falha ao carregar o estoque de camisas:', error);
     });
@@ -183,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const estoqueDisponivel = await ensureShirtStockAvailable(camisa);
+        const estoqueDisponivel = await ensureShirtStockAvailable(camisa, tamanhoCamisa);
         if (!estoqueDisponivel) {
             document.getElementById('loading-overlay').style.display = 'none';
             return;
@@ -211,8 +272,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error || !data || data.length === 0) {
             document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro ao salvar no Supabase:', error);
+            if (error && String(error.message || '').includes('TAMANHO_ESGOTADO')) {
+                await refreshShirtStock().catch(stockError => console.error('Falha ao atualizar estoque:', stockError));
+                showSoldOutMessage(null, 'size');
+                return;
+            }
             if (error && String(error.message || '').includes('CAMISAS_ESGOTADAS')) {
-                setShirtStockState(true);
+                await refreshShirtStock().catch(stockError => console.error('Falha ao atualizar estoque:', stockError));
                 showSoldOutMessage();
                 return;
             }
@@ -221,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (camisa === 'sim' || camisa === 'somente') {
-            refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
+            await refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
         }
 
         // Pega o ID único gerado no banco para usar como order_nsu
@@ -312,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const estoqueDisponivel = await ensureShirtStockAvailable(camisa);
+        const estoqueDisponivel = await ensureShirtStockAvailable(camisa, tamanhoCamisa);
         if (!estoqueDisponivel) {
             document.getElementById('loading-overlay').style.display = 'none';
             return;
@@ -337,8 +403,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (error) {
             document.getElementById('loading-overlay').style.display = 'none';
             console.error('Erro:', error);
+            if (String(error.message || '').includes('TAMANHO_ESGOTADO')) {
+                await refreshShirtStock().catch(stockError => console.error('Falha ao atualizar estoque:', stockError));
+                showSoldOutMessage(null, 'size');
+                return;
+            }
             if (String(error.message || '').includes('CAMISAS_ESGOTADAS')) {
-                setShirtStockState(true);
+                await refreshShirtStock().catch(stockError => console.error('Falha ao atualizar estoque:', stockError));
                 showSoldOutMessage();
                 return;
             }
@@ -347,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (camisa === 'sim' || camisa === 'somente') {
-            refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
+            await refreshShirtStock().catch(error => console.error('Falha ao atualizar estoque após a reserva:', error));
         }
 
         const successTitle = document.getElementById('especie-success-title');
