@@ -159,7 +159,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const stock = await refreshShirtStock();
-                if ((stock[selectedSize] || 0) <= 0) {
+                const totalRemaining = SHIRT_SIZES.reduce((sum, size) => sum + stock[size], 0);
+
+                if (totalRemaining <= 0) {
+                    tamanhoCamisaSelect.value = '';
+                    showSoldOutMessage();
+                } else if ((stock[selectedSize] || 0) <= 0) {
                     tamanhoCamisaSelect.value = '';
                     showSoldOutMessage(null, 'size');
                 }
@@ -193,11 +198,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cardNao.addEventListener('click', () => updateShirtSelection('não'));
     radioNao.addEventListener('change', () => { if (radioNao.checked) updateShirtSelection('não'); });
+    async function confirmShirtChoice(choice) {
+        try {
+            const stock = await refreshShirtStock();
+            const totalRemaining = SHIRT_SIZES.reduce((sum, size) => sum + stock[size], 0);
+
+            if (totalRemaining <= 0) {
+                updateShirtSelection('não');
+                showSoldOutMessage();
+                return;
+            }
+
+            updateShirtSelection(choice);
+        } catch (error) {
+            console.error('Falha ao confirmar disponibilidade das camisas:', error);
+            updateShirtSelection('não');
+            alert('Não foi possível confirmar o estoque das camisas. Tente novamente.');
+        }
+    }
+
     radioSim.addEventListener('change', () => {
-        if (radioSim.checked && !shirtStockSoldOut) updateShirtSelection('sim');
+        if (radioSim.checked) confirmShirtChoice('sim');
     });
     radioSomente.addEventListener('change', () => {
-        if (radioSomente.checked && !shirtStockSoldOut) updateShirtSelection('somente');
+        if (radioSomente.checked) confirmShirtChoice('somente');
     });
 
     // Modal da Camisa
