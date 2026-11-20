@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Controle automático do estoque: 50 registros existentes + 10 camisas restantes.
+    // Controle automático do estoque de camisas por tamanho.
     const SHIRT_SIZES = ['P', 'M', 'G', 'GG'];
     const soldoutDialog = document.getElementById('shirts-soldout-dialog');
     const soldoutClose = document.getElementById('soldout-close');
