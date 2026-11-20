@@ -554,3 +554,68 @@ dialog#especie-success-modal::backdrop {
   color: var(--lilas-profundo); border: 1px solid white; border-radius: 999px;
   padding: 0.8rem 1.8rem; font: 700 1rem 'Plus Jakarta Sans', sans-serif; cursor: pointer;
 }
+
+/* Seletor de tamanhos: não exibe quantidades de estoque */
+.shirt-size-picker {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.shirt-size-option {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.9rem 0.4rem;
+  border: 1.5px solid var(--lilas-suave);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--texto-escuro);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.shirt-size-option:not(.sold-out-size):hover {
+  transform: translateY(-1px);
+  border-color: var(--lilas-profundo);
+}
+
+.shirt-size-option.selected {
+  background: linear-gradient(135deg, rgba(232, 192, 252, 0.9), rgba(168, 222, 250, 0.9));
+  border-color: var(--lilas-profundo);
+  box-shadow: 0 5px 14px rgba(128, 97, 217, 0.16);
+}
+
+.shirt-size-option.sold-out-size {
+  background: #eeeeee;
+  border-color: #d5d5d5;
+  color: #929292;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.shirt-size-option.sold-out-size:hover {
+  transform: none;
+  background: #e8e8e8;
+}
+
+.shirt-size-option:focus-visible {
+  outline: 3px solid rgba(128, 97, 217, 0.35);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .shirt-size-picker {
+    gap: 0.45rem;
+  }
+
+  .shirt-size-option {
+    padding: 0.8rem 0.25rem;
+    font-size: 0.88rem;
+  }
+}
+
